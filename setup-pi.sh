@@ -34,24 +34,24 @@ fi
 
 echo "Downloading AppImage"
 
-if getconf LONG_BIT | grep -q '64'; then
-	echo "64 Bit Detected"
- 	curl -L https://github.com/rhysmorgan134/react-carplay/releases/download/v4.0.2/react-carplay-4.0.2-arm64.AppImage --output /home/$USER/Desktop/Carplay.AppImage
-else
-	echo "32 Bit Detected"
- 	curl -L https://github.com/rhysmorgan134/react-carplay/releases/download/v4.0.2/react-carplay-4.0.2-armv7l.AppImage --output /home/$USER/Desktop/Carplay.AppImage
-fi
+#if getconf LONG_BIT | grep -q '64'; then
+#	echo "64 Bit Detected"
+# 	curl -L https://github.com/rhysmorgan134/react-carplay/releases/download/v4.0.2/react-carplay-4.0.2-arm64.AppImage --output /home/$USER/Desktop/Carplay.AppImage
+#else
+#	echo "32 Bit Detected"
+# 	curl -L https://github.com/rhysmorgan134/react-carplay/releases/download/v4.0.2/react-carplay-4.0.2-armv7l.AppImage --output /home/$USER/Desktop/Carplay.AppImage
+#fi
 
 echo "Download Done"
 
 echo "Creating executable"
-sudo chmod +x /home/$USER/Desktop/Carplay.AppImage
+#sudo chmod +x /home/$USER/Desktop/Carplay.AppImage
 
-echo "Creating Autostart File"
+#echo "Creating Autostart File"
 
-sudo bash -c "echo '[Desktop Entry]
-Name=File Manager
-Exec=/home/$USER/Desktop/Carplay.AppImage
-Type=Application' > /etc/xdg/autostart/carplay.desktop"
+#sudo bash -c "echo '[Desktop Entry]
+#Name=File Manager
+#Exec=/home/$USER/Desktop/Carplay.AppImage
+#Type=Application' > /etc/xdg/autostart/carplay.desktop"
 
 echo "All Done"

@@ -1,10 +1,15 @@
 .App {
     text-align: center;
+    background-color: #333333;
+    color: aliceblue;
 }
 
 body {
+    /* background-color: #ebebeb; */
     margin: 0px;
     padding: 0px;
+    background-color: #333333;
+    color: aliceblue;
 }
 
 .App-logo {
@@ -19,18 +24,18 @@ body {
 }
 
 .App-header {
-    background-color: #282c34;
+    background-color: #ff1b1b;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     font-size: calc(10px + 2vmin);
-    color: white;
+    color: rgb(231, 231, 231);
 }
 
 .App-link {
-    color: #61dafb;
+    color: #20ff0b;
 }
 
 @keyframes App-logo-spin {
@@ -41,3 +46,14 @@ body {
         transform: rotate(360deg);
     }
 }
+
+
+
+.full{
+    display: flex;
+    /* height: 95vh; */
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+}}
