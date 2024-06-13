@@ -51,9 +51,30 @@ body {
 
 .full{
     display: flex;
+    /* flex-direction: row; */
     /* height: 95vh; */
-    width: 100vw;
-    height: 100vh;
+    width: 1920px;
+    height: 515px;
     padding: 0;
     margin: 0;
-}}
+}
+
+.carplay{
+    display: flex;
+    /* height: 95vh; */
+    width: 1373px;
+    height: 515px;
+    padding: 0;
+    margin: 0;
+    background-color: #20ff0b;
+}
+
+.setup{
+    /* display: flex; */
+    /* height: 95vh; */
+    width: 547px;
+    height: 515px;
+    padding: 0;
+    margin: 0;
+    background-color: #ff1b1b;
+}

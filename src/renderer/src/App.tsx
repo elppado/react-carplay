@@ -1,14 +1,11 @@
-import { useEffect, useState, Suspense, lazy } from 'react'
-import { HashRouter as Router} from 'react-router-dom'
-import Settings from './components/Settings'
+import { useEffect, useState } from 'react'
+import { HashRouter as Router } from 'react-router-dom'
+// import Settings from './components/Settings'
 import './App.css'
 import Carplay from './components/Carplay'
 import { useCarplayStore } from './store/store'
 
-
-
-
-function App() {
+function App(): JSX.Element {
   const [receivingVideo, setReceivingVideo] = useState(false)
   const [commandCounter, setCommandCounter] = useState(0)
   const [keyCommand, setKeyCommand] = useState('')
@@ -44,7 +41,7 @@ function App() {
   return (
     <Router>
       <div className="full">
-        <div style={{ textAlign: 'center' }}>
+        <div className="carplay">
           {settings ? (
             <Carplay
               receivingVideo={receivingVideo}
@@ -55,6 +52,7 @@ function App() {
             />
           ) : null}
         </div>
+        <div className="setup"></div>
       </div>
     </Router>
   )

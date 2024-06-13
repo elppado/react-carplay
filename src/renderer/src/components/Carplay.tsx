@@ -12,8 +12,8 @@ import { InitEvent } from './worker/render/RenderEvents'
 // import { Dialog, DialogTitle, DialogContent, Slide, Button } from '@mui/material';
 // import { TransitionProps } from '@mui/material/transitions/transition';
 
-const width = window.innerWidth
-const height = window.innerHeight
+const width = 1373
+const height = 515
 
 const videoChannel = new MessageChannel()
 const micChannel = new MessageChannel()
@@ -221,7 +221,7 @@ function Carplay({ setReceivingVideo, settings, command, commandCounter }: Carpl
         <div
           style={{
             position: 'absolute',
-            width: '1920px',
+            width: '1373px',
             height: '515px',
             display: 'flex',
             justifyContent: 'center',
@@ -251,7 +251,7 @@ function Carplay({ setReceivingVideo, settings, command, commandCounter }: Carpl
         onPointerOut={sendTouchEvent}
         style={{
           height: '515px',
-          width: '1920px',
+          width: '1373px',
           display: 'flex'
         }}
       >
