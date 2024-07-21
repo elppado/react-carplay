@@ -20,6 +20,7 @@ function App(): JSX.Element {
 
   const onKeyDown = (event: KeyboardEvent): void => {
     console.log(event.code)
+    console.log('KEYBOARDD')
     if (Object.values(settings!.bindings).includes(event.code)) {
       const action = Object.keys(settings!.bindings).find(
         (key) => settings!.bindings[key] === event.code
@@ -41,18 +42,15 @@ function App(): JSX.Element {
   return (
     <Router>
       <div className="full">
-        <div className="carplay">
-          {settings ? (
-            <Carplay
-              receivingVideo={receivingVideo}
-              setReceivingVideo={setReceivingVideo}
-              settings={settings}
-              command={keyCommand}
-              commandCounter={commandCounter}
-            />
-          ) : null}
-        </div>
-        <div className="setup"></div>
+        {settings ? (
+          <Carplay
+            receivingVideo={receivingVideo}
+            setReceivingVideo={setReceivingVideo}
+            settings={settings}
+            command={keyCommand}
+            commandCounter={commandCounter}
+          />
+        ) : null}
       </div>
     </Router>
   )

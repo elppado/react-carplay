@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 import { RotatingLines } from 'react-loader-spinner'
 //import './App.css'
 import { findDevice, requestDevice, CommandMapping } from 'node-carplay/web'
-import { CarPlayWorker } from './worker/types'
+import { CarPlayWorker, KeyCommand } from './worker/types'
 import useCarplayAudio from './useCarplayAudio'
 import { useCarplayTouch } from './useCarplayTouch'
 import { useLocation } from 'react-router-dom'
@@ -12,8 +12,8 @@ import { InitEvent } from './worker/render/RenderEvents'
 // import { Dialog, DialogTitle, DialogContent, Slide, Button } from '@mui/material';
 // import { TransitionProps } from '@mui/material/transitions/transition';
 
-const width = 1373
-const height = 515
+const width = window.innerWidth
+const height = window.innerHeight
 
 const videoChannel = new MessageChannel()
 const micChannel = new MessageChannel()
@@ -28,7 +28,12 @@ interface CarplayProps {
   commandCounter: number
 }
 
-function Carplay({ setReceivingVideo, settings, command, commandCounter }: CarplayProps) {
+function Carplay({
+  setReceivingVideo,
+  settings,
+  command,
+  commandCounter
+}: CarplayProps): JSX.Element {
   const [isPlugged, setPlugged] = useState(false)
   const [deviceFound, setDeviceFound] = useState(false)
   const { pathname } = useLocation()
@@ -89,7 +94,7 @@ function Carplay({ setReceivingVideo, settings, command, commandCounter }: Carpl
 
   // subscribe to worker messages
   useEffect(() => {
-    carplayWorker.onmessage = (ev) => {
+    carplayWorker.onmessage = (ev): void => {
       const { type } = ev.data
       switch (type) {
         case 'plugged':
@@ -108,6 +113,7 @@ function Carplay({ setReceivingVideo, settings, command, commandCounter }: Carpl
           break
         case 'audio':
           clearRetryTimeout()
+
           processAudio(ev.data.message)
           break
         case 'media':
@@ -167,7 +173,7 @@ function Carplay({ setReceivingVideo, settings, command, commandCounter }: Carpl
   }, [])
 
   useEffect(() => {
-    carplayWorker.postMessage({ type: 'keyCommand', command: command })
+    carplayWorker.postMessage({ type: 'keyCommand', command: command as KeyCommand })
   }, [commandCounter])
 
   const checkDevice = useCallback(
@@ -187,11 +193,11 @@ function Carplay({ setReceivingVideo, settings, command, commandCounter }: Carpl
 
   // usb connect/disconnect handling and device check
   useEffect(() => {
-    navigator.usb.onconnect = async () => {
+    navigator.usb.onconnect = async (): Promise<void> => {
       checkDevice()
     }
 
-    navigator.usb.ondisconnect = async () => {
+    navigator.usb.ondisconnect = async (): Promise<void> => {
       const device = await findDevice()
       if (!device) {
         carplayWorker.postMessage({ type: 'stop' })
@@ -221,15 +227,15 @@ function Carplay({ setReceivingVideo, settings, command, commandCounter }: Carpl
         <div
           style={{
             position: 'absolute',
-            width: '1373px',
-            height: '515px',
+            width: '100vw',
+            height: '100vh',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center'
           }}
         >
           {deviceFound === false && (
-            <button rel="noopener noreferrer"style={{ display: 'none' }}></button>
+            <button rel="noopener noreferrer" style={{ display: 'none' }}></button>
           )}
           {deviceFound && (
             <RotatingLines
@@ -250,8 +256,8 @@ function Carplay({ setReceivingVideo, settings, command, commandCounter }: Carpl
         onPointerCancel={sendTouchEvent}
         onPointerOut={sendTouchEvent}
         style={{
-          height: '515px',
-          width: '1373px',
+          width: '100vw',
+          height: '100vh',
           display: 'flex'
         }}
       >

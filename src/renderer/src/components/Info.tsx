@@ -1,10 +1,10 @@
 
 
-function Info() {
+// function Info() {
 
-  return (
-    <div>info</div>
-  )
-}
+//   return (
+//     <div>info</div>
+//   )
+// }
 
-export default Info
+// export default Info

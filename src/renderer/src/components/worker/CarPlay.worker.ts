@@ -4,7 +4,7 @@ import CarplayWeb, {
   SendAudio,
   SendCommand,
   SendTouch,
-  findDevice,
+  findDevice
 } from 'node-carplay/web'
 import { AudioPlayerKey, Command } from './types'
 import { RenderEvent } from './render/RenderEvents'
@@ -37,8 +37,8 @@ const handleMessage = (message: CarplayMessage) => {
       const getPlayerMessage = {
         type: 'getAudioPlayer',
         message: {
-          ...payload,
-        },
+          ...payload
+        }
       }
       postMessage(getPlayerMessage)
     }
@@ -53,7 +53,7 @@ onmessage = async (event: MessageEvent<Command>) => {
       if (carplayWeb) return
       videoPort = event.data.payload.videoPort
       microphonePort = event.data.payload.microphonePort
-      microphonePort.onmessage = ev => {
+      microphonePort.onmessage = (ev) => {
         if (carplayWeb) {
           const data = new SendAudio(ev.data)
           carplayWeb.dongleDriver.send(data)
@@ -61,32 +61,37 @@ onmessage = async (event: MessageEvent<Command>) => {
       }
       break
     case 'audioPlayer':
-      const { sab, decodeType, audioType } = event.data.payload
-      const audioKey = createAudioPlayerKey(decodeType, audioType)
-      audioBuffers[audioKey] = new RingBuffer(sab, Int16Array)
-      if (pendingAudio[audioKey]) {
-        pendingAudio[audioKey].forEach(buf => {
-          audioBuffers[audioKey].push(buf)
-        })
-        pendingAudio[audioKey] = []
+      {
+        const { sab, decodeType, audioType } = event.data.payload
+        const audioKey = createAudioPlayerKey(decodeType, audioType)
+        audioBuffers[audioKey] = new RingBuffer(sab, Int16Array)
+        if (pendingAudio[audioKey]) {
+          pendingAudio[audioKey].forEach((buf) => {
+            audioBuffers[audioKey].push(buf)
+          })
+          pendingAudio[audioKey] = []
+        }
       }
       break
     case 'start':
-      if (carplayWeb) return
-      config = event.data.payload.config
-      const device = await findDevice()
-      if (device) {
-        carplayWeb = new CarplayWeb(config)
-        carplayWeb.onmessage = handleMessage
-        carplayWeb.start(device)
+      {
+        if (carplayWeb) return
+        config = event.data.payload.config
+        const device = await findDevice()
+        if (device) {
+          carplayWeb = new CarplayWeb(config)
+          carplayWeb.onmessage = handleMessage
+          carplayWeb.start(device)
+        }
       }
       break
     case 'touch':
-      if (config && carplayWeb) {
-        const { x, y, action } = event.data.payload
-        const data = new SendTouch(x, y, action)
-        carplayWeb.dongleDriver.send(data)
-      } else {
+      {
+        if (config && carplayWeb) {
+          const { x, y, action } = event.data.payload
+          const data = new SendTouch(x, y, action)
+          carplayWeb.dongleDriver.send(data)
+        }
       }
       break
     case 'stop':
@@ -99,6 +104,11 @@ onmessage = async (event: MessageEvent<Command>) => {
         carplayWeb.dongleDriver.send(data)
       }
       break
+    case 'keyCommand':
+      if (carplayWeb) {
+        const data = new SendCommand(event.data.command)
+        carplayWeb.dongleDriver.send(data)
+      }
   }
 }
 

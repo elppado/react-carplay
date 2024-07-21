@@ -1,10 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import {
-  AudioCommand,
-  AudioData,
-  WebMicrophone,
-  decodeTypeMap,
-} from 'node-carplay/web'
+import { AudioCommand, AudioData, WebMicrophone, decodeTypeMap } from 'node-carplay/web'
 import { PcmPlayer } from 'pcm-ringbuf-player'
 import { AudioPlayerKey, CarPlayWorker } from './worker/types'
 import { createAudioPlayerKey } from './worker/utils'
@@ -13,10 +8,7 @@ import { createAudioPlayerKey } from './worker/utils'
 const defaultAudioVolume = 1
 const defaultNavVolume = 0.5
 
-const useCarplayAudio = (
-  worker: CarPlayWorker,
-  microphonePort: MessagePort,
-) => {
+const useCarplayAudio = (worker: CarPlayWorker, microphonePort: MessagePort) => {
   const [mic, setMic] = useState<WebMicrophone | null>(null)
   const [audioPlayers] = useState(new Map<AudioPlayerKey, PcmPlayer>())
 
@@ -36,12 +28,12 @@ const useCarplayAudio = (
         payload: {
           sab: player.getRawBuffer(),
           decodeType,
-          audioType,
-        },
+          audioType
+        }
       })
       return player
     },
-    [audioPlayers, worker],
+    [audioPlayers, worker]
   )
 
   const processAudio = useCallback(
@@ -53,26 +45,30 @@ const useCarplayAudio = (
       } else if (audio.command) {
         switch (audio.command) {
           case AudioCommand.AudioNaviStart:
-            const navPlayer = getAudioPlayer(audio)
-            navPlayer.volume(defaultNavVolume)
+            {
+              const navPlayer = getAudioPlayer(audio)
+              navPlayer.volume(defaultNavVolume)
+            }
             break
           case AudioCommand.AudioMediaStart:
           case AudioCommand.AudioOutputStart:
-            const mediaPlayer = getAudioPlayer(audio)
-            mediaPlayer.volume(defaultAudioVolume)
+            {
+              const mediaPlayer = getAudioPlayer(audio)
+              mediaPlayer.volume(defaultAudioVolume)
+            }
             break
         }
       }
     },
-    [getAudioPlayer],
+    [getAudioPlayer]
   )
 
   // audio init
   useEffect(() => {
-    const initMic = async () => {
+    const initMic = async (): Promise<void> => {
       try {
         const mediaStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
+          audio: true
         })
         const mic = new WebMicrophone(mediaStream, microphonePort)
         setMic(mic)
@@ -83,8 +79,8 @@ const useCarplayAudio = (
 
     initMic()
 
-    return () => {
-      audioPlayers.forEach(p => p.stop())
+    return (): void => {
+      audioPlayers.forEach((p) => p.stop())
     }
   }, [audioPlayers, worker, microphonePort])
 

@@ -1,7 +1,7 @@
-import { ExtraConfig } from "./Globals";
+import { ExtraConfig } from './Globals'
 import { Server } from 'socket.io'
 import { EventEmitter } from 'events'
-import { Stream } from "socketmost/dist/modules/Messages";
+import { Stream } from 'socketmost/dist/modules/Messages'
 
 export enum MessageNames {
   Connection = 'connection',
@@ -43,15 +43,15 @@ export class Socket extends EventEmitter {
     this.io.listen(4000)
   }
 
-  sendSettings() {
+  sendSettings(): void {
     this.io.emit('settings', this.config)
   }
 
-  sendReverse(reverse: boolean) {
+  sendReverse(reverse: boolean): void {
     this.io.emit('reverse', reverse)
   }
 
-  sendLights(lights: boolean) {
+  sendLights(lights: boolean): void {
     this.io.emit('lights', lights)
   }
 }
