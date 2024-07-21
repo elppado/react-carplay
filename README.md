@@ -27,10 +27,16 @@ carplay application.
 ## RUN and Build
 
 simple run
+
 `npm start`
 
+
+
 build
+
 `npm run build:armLinux`
+
+
 
 Then run the AppImage
 
