@@ -41,3 +41,10 @@ build
 Then run the AppImage
 
 `./react-carplay-4.0.0-arm64.AppImage`
+
+
+# To Do
+1. Remove unnecessary parts.
+2. Make it faster and more efficient.
+3. Update all code and eliminate bugs and errors.
+4. Integrate it with my car.
