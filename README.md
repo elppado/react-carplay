@@ -8,10 +8,10 @@
 
 Removed unnecessary parts, made slight optimizations, and fixed some bugs.
 
-1. Restored keyboard functionality.
-2. Made the Siri button usable (via the keyboard).
-3. Removed all tabs and changed the background color.
-4. Modified everything to suit my preferences.
+- Restored keyboard functionality.
+- Made the Siri button usable (via the keyboard).
+- Removed all tabs and changed the background color.
+- Modified everything to suit my preferences.
 
 
 
@@ -44,7 +44,7 @@ Then run the AppImage
 
 
 # To Do
-1. Remove unnecessary parts.
-2. Make it faster and more efficient.
-3. Update all code and eliminate bugs and errors.
-4. Integrate it with my car.
+- Remove unnecessary parts.
+- Make it faster and more efficient.
+- Update all code and eliminate bugs and errors.
+- Integrate it with my car.
