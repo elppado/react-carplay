@@ -33,6 +33,9 @@ export type KeyCommand =
   | 'pause'
   | 'next'
   | 'prev'
+  | 'siri'
+  | 'disableNightMode'
+  | 'enableNightMode'
 
 export type Command =
   | { type: 'stop' }

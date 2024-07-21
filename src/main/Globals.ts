@@ -27,6 +27,9 @@ export interface KeyBindings {
   pause: string
   next: string
   prev: string
+  siri: string
+  enableNightMode: string
+  disableNightMode: string
 }
 
 export interface CanMessage {

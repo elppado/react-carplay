@@ -33,7 +33,10 @@ const DEFAULT_BINDINGS: KeyBindings = {
   play: 'KeyP',
   pause: 'KeyO',
   next: 'KeyM',
-  prev: 'KeyN'
+  prev: 'KeyN',
+  siri: 'KeyS',
+  enableNightMode: 'KeyZ',
+  disableNightMode: 'KeyX'
 }
 
 const EXTRA_CONFIG: ExtraConfig = {
@@ -50,7 +53,6 @@ const EXTRA_CONFIG: ExtraConfig = {
 
 let piMost: null | PiMost
 let canbus: null | Canbus
-
 let socket: null | Socket
 
 fs.exists(configPath, (exists) => {
