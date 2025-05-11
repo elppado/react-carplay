@@ -11,6 +11,7 @@
     "jsx": "react-jsx",
     "target": "es5",
     "lib": ["dom", "dom.iterable", "esnext", "WebWorker"],
+    "types": ["react", "react-dom"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,

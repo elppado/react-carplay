@@ -11,14 +11,17 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
-    "start": "electron-vite preview",
+    "start": "electron-vite preview --host",
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
-    "postinstall": "electron-builder install-app-deps",
-    "build:win": "npm run build && electron-builder --win --config",
-    "build:mac": "electron-vite build && electron-builder --mac --config",
-    "build:linux": "electron-vite build && electron-builder --linux --config",
-    "build:armLinux": "electron-vite build && electron-builder --linux AppImage --arm64 --config"
+    "postinstall": "electron-builder install-app-deps && electron-rebuild",
+    "build:linux": "electron-vite build && electron-builder --linux --config --publish never",
+    "build:armLinux": "electron-vite build && electron-builder --linux AppImage --arm64 --config --publish never",
+    "build:fast": "cross-env NODE_ENV=production electron-vite build --mode production",
+    "start:fast": "cross-env NODE_ENV=production electron .",
+    "build:wasm": "cd src/wasm && wasm-pack build --target web",
+    "dev:wasm": "cd src/wasm && wasm-pack build --target web --dev",
+    "watch:wasm": "cd src/wasm && wasm-pack build --target web --watch"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
@@ -32,20 +35,13 @@
     "electron-is-dev": "^2.0.0",
     "electron-typescript-ipc": "^3.0.0",
     "events": "^3.3.0",
-    "i": "^0.3.7",
     "jmuxer": "^2.0.5",
-    "node-carplay": "github:rhysmorgan134/node-CarPlay",
-    "pcm-player": "^0.0.16",
+    "node-carplay": "github:rhysmorgan134/node-CarPlay#main",
     "pcm-ringbuf-player": "github:rhysmorgan134/pcm-ringbuf-player",
     "react-loader-spinner": "^5.4.5",
     "react-router-dom": "^6.23.1",
-    "socket.io": "^4.7.2",
-    "socket.io-client": "^4.7.2",
-    "socketcan": "^4.0.4",
-    "socketmost": "^2.0.6",
     "stream-browserify": "^3.0.0",
     "usb": "^2.10.0",
-    "vite-plugin-esmodule": "^1.5.0",
     "zustand": "^4.4.5"
   },
   "devDependencies": {
@@ -58,6 +54,7 @@
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@vitejs/plugin-react": "^4.0.4",
+    "cross-env": "^7.0.3",
     "electron": "^27.0.3",
     "electron-builder": "^24.6.3",
     "electron-vite": "^1.0.29",
@@ -66,8 +63,9 @@
     "prettier": "^3.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "rollup-plugin-polyfill-node": "^0.12.0",
     "typescript": "^5.1.6",
-    "vite": "^4.4.9"
+    "vite": "^4.4.9",
+    "wasm-pack": "^0.12.1",
+    "electron-rebuild": "^3.2.9"
   }
 }

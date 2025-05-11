@@ -10,17 +10,12 @@ import {
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { DEFAULT_CONFIG } from 'node-carplay/node'
-import { Socket } from './Socket'
 import * as fs from 'fs'
-import { PiMost } from './PiMost'
-import { Canbus } from './Canbus'
 import { ExtraConfig, KeyBindings } from './Globals'
-// import CarplayNode, {DEFAULT_CONFIG, CarplayMessage} from "node-carplay/node";
 
 let mainWindow: BrowserWindow
 const appPath: string = app.getPath('userData')
 const configPath: string = appPath + '/config.json'
-console.log(configPath)
 let config: null | ExtraConfig
 
 const DEFAULT_BINDINGS: KeyBindings = {
@@ -44,62 +39,42 @@ const EXTRA_CONFIG: ExtraConfig = {
   kiosk: false,
   camera: '',
   microphone: '',
-  piMost: false,
-  canbus: false,
-  bindings: DEFAULT_BINDINGS,
-  most: {},
-  canConfig: {}
+  bindings: DEFAULT_BINDINGS
 }
 
-let piMost: null | PiMost
-let canbus: null | Canbus
-let socket: null | Socket
-
-fs.exists(configPath, (exists) => {
-  if (exists) {
-    config = JSON.parse(fs.readFileSync(configPath).toString())
-    const configKeys = JSON.stringify(Object.keys({ ...config }).sort())
-    const defaultKeys = JSON.stringify(Object.keys({ ...EXTRA_CONFIG }).sort())
-    if (configKeys !== defaultKeys) {
-      console.log('config updating')
+// Config loading optimization
+try {
+  if (fs.existsSync(configPath)) {
+    config = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
+    const configKeys = Object.keys(config).sort()
+    const defaultKeys = Object.keys(EXTRA_CONFIG).sort()
+    if (JSON.stringify(configKeys) !== JSON.stringify(defaultKeys)) {
       config = { ...EXTRA_CONFIG, ...config }
-      console.log('new config', config)
       fs.writeFileSync(configPath, JSON.stringify(config))
     }
-    console.log('config read')
   } else {
     fs.writeFileSync(configPath, JSON.stringify(EXTRA_CONFIG))
-    config = JSON.parse(fs.readFileSync(configPath).toString())
-    console.log('config created and read')
+    config = EXTRA_CONFIG
   }
-  socket = new Socket(config!, saveSettings)
-  // if(config!.most) {
-  //   console.log('creating pi most in main')
-  //   piMost = new PiMost(socket)
-  // }
-
-  // if(config!.canbus) {
-  //   console.log("Configuring can", config!.canConfig)
-  //   canbus = new Canbus('can0',  socket, config!.canConfig)
-  //   canbus.on('lights', (data) => {
-  //     console.log('lights', data)
-  //   })
-  //   canbus.on('reverse', (data) => {
-  //     mainWindow?.webContents?.send('reverse', data)
-  //   })
-  // }
-})
+} catch (error) {
+  console.error('Error loading config:', error)
+  config = EXTRA_CONFIG
+}
 
 const handleSettingsReq = (_: IpcMainEvent) => {
-  console.log('settings request')
   mainWindow?.webContents.send('settings', config)
 }
 
+// Performance optimizations
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
 app.commandLine.appendSwitch('disable-webusb-security', 'true')
-console.log(app.commandLine.hasSwitch('disable-webusb-security'))
+app.commandLine.appendSwitch('enable-experimental-web-platform-features')
+app.commandLine.appendSwitch('disable-gpu-vsync')
+app.commandLine.appendSwitch('disable-frame-rate-limit')
+app.commandLine.appendSwitch('enable-zero-copy')
+app.commandLine.appendSwitch('ignore-gpu-blocklist')
+
 function createWindow(): void {
-  // Create the browser window.
   mainWindow = new BrowserWindow({
     transparent: true,
     width: config!.width,
@@ -114,86 +89,56 @@ function createWindow(): void {
       sandbox: false,
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
-      webSecurity: false
+      webSecurity: false,
+      backgroundThrottling: false
     }
   })
+
   mainWindow.setBackgroundColor('#333333')
-  app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
 
-  // mainWindow.webContents.session.setDevicePermissionHandler((details) => {
-  //   if (true) {
-  //     if (details.device.vendorId === 4884 && details.device.productId === 5408) {
-  //       // Always allow this type of device (this allows skipping the call to `navigator.hid.requestDevice` first)
-  //       return true
-  //     }
-  //   }
-  //   return false
-  // })
-
-  mainWindow.webContents.session.setPermissionCheckHandler(() => {
-    return true
-  })
-
-  mainWindow.webContents.session.setDevicePermissionHandler((details) => {
-    if (details.device.vendorId === 4884) {
-      return true
-    } else {
-      return false
-    }
-  })
+  // Optimize permissions
+  mainWindow.webContents.session.setPermissionCheckHandler(() => true)
+  mainWindow.webContents.session.setDevicePermissionHandler((details) => 
+    details.device.vendorId === 4884
+  )
 
   mainWindow.webContents.session.on('select-usb-device', (event, details, callback) => {
     event.preventDefault()
-    const selectedDevice = details.deviceList.find((device) => {
-      return device.vendorId === 4884 && (device.productId === 5408 || device.productId === 5408)
-    })
-
+    const selectedDevice = details.deviceList.find(
+      device => device.vendorId === 4884 && device.productId === 5408
+    )
     callback(selectedDevice?.deviceId)
   })
-  // app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
-  })
+  mainWindow.on('ready-to-show', () => mainWindow.show())
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
-  app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
-  systemPreferences.askForMediaAccess('microphone')
+
+  // Optimize headers
   mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-    details.responseHeaders!['Cross-Origin-Opener-Policy'] = ['same-origin']
-    details.responseHeaders!['Cross-Origin-Embedder-Policy'] = ['require-corp']
-    callback({ responseHeaders: details.responseHeaders })
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'require-corp'
+      }
+    })
   })
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.commandLine.appendSwitch('enable-experimental-web-platform-features')
-app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
 app.whenReady().then(() => {
-  // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
-  // const carplay = new CarplayNode(DEFAULT_CONFIG)
-  //
-  // carplay.start()
-  // carplay.onmessage = (message: CarplayMessage) => {
-  //
-  //   if (message.type === 'audio') {
-  //     mainWindow.webContents.send('audioData', message.message)
-  //   }
-  // }
+
+  // Optimize session headers
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
@@ -205,53 +150,30 @@ app.whenReady().then(() => {
   })
 
   ipcMain.on('getSettings', handleSettingsReq)
-
   ipcMain.on('saveSettings', saveSettings)
-
-  // ipcMain.on('startStream', startMostStream)
-
   ipcMain.on('quit', quit)
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
   createWindow()
 
-  app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
+  app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
 const saveSettings = (settings: ExtraConfig) => {
-  console.log('saving settings', settings)
   fs.writeFileSync(configPath, JSON.stringify(settings))
 }
-
-// const startMostStream = (_: IpcMainEvent, most: Stream) => {
-//   console.log("stream request")
-//   if(piMost) {
-//     piMost.stream(most)
-//   }
-// }
 
 const quit = (_: IpcMainEvent) => {
   app.quit()
 }
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
-
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.

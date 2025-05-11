@@ -23,7 +23,7 @@ function App(): JSX.Element {
     console.log('KEYBOARDD')
     if (Object.values(settings!.bindings).includes(event.code)) {
       const action = Object.keys(settings!.bindings).find(
-        (key) => settings!.bindings[key] === event.code
+        (key) => settings!.bindings[key as keyof typeof settings.bindings] === event.code
       )
       if (action !== undefined) {
         setKeyCommand(action)

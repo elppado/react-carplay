@@ -1,19 +1,16 @@
-import { Stream } from 'socketmost/dist/modules/Messages'
 import { DongleConfig } from 'node-carplay/node'
 
-export type Most = {
-  stream?: Stream
+export interface Stream {
+  id: number
+  type: string
+  data: any
 }
 
 export type ExtraConfig = DongleConfig & {
   kiosk: boolean
   camera: string
   microphone: string
-  piMost: boolean
-  canbus: boolean
   bindings: KeyBindings
-  most?: Most
-  canConfig?: CanConfig
 }
 
 export interface KeyBindings {

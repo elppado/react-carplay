@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { RotatingLines } from 'react-loader-spinner'
+import { RotatingLines, Loader } from 'react-loader-spinner'
 //import './App.css'
 import { findDevice, requestDevice, CommandMapping } from 'node-carplay/web'
 import { CarPlayWorker, KeyCommand } from './worker/types'
 import useCarplayAudio from './useCarplayAudio'
 import { useCarplayTouch } from './useCarplayTouch'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { ExtraConfig } from '../../../main/Globals'
 import { useCarplayStore } from '../store/store'
 import { InitEvent } from './worker/render/RenderEvents'
+import init, { VideoProcessor } from '../../../wasm/pkg'
 // import { Dialog, DialogTitle, DialogContent, Slide, Button } from '@mui/material';
 // import { TransitionProps } from '@mui/material/transitions/transition';
 
@@ -37,6 +38,7 @@ function Carplay({
   const [isPlugged, setPlugged] = useState(false)
   const [deviceFound, setDeviceFound] = useState(false)
   const { pathname } = useLocation()
+  const navigate = useNavigate()
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null)
@@ -99,10 +101,6 @@ function Carplay({
       switch (type) {
         case 'plugged':
           setPlugged(true)
-          if (settings.piMost && settings?.most?.stream) {
-            console.log('setting most stream')
-            stream(settings.most.stream)
-          }
           break
         case 'unplugged':
           setPlugged(false)
@@ -214,7 +212,59 @@ function Carplay({
 
   const sendTouchEvent = useCarplayTouch(carplayWorker, width, height)
 
-  const isLoading = !isPlugged
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoProcessorRef = useRef<VideoProcessor | null>(null)
+
+  useEffect(() => {
+    const initWasm = async () => {
+      try {
+        await init()
+        if (videoRef.current) {
+          const { videoWidth, videoHeight } = videoRef.current
+          videoProcessorRef.current = new VideoProcessor(videoWidth, videoHeight)
+        }
+      } catch (err) {
+        console.error('Failed to initialize WebAssembly:', err)
+      }
+    }
+
+    initWasm()
+  }, [])
+
+  const handleVideoFrame = () => {
+    if (!videoRef.current || !canvasRef.current || !videoProcessorRef.current) return
+
+    const video = videoRef.current
+    const canvas = canvasRef.current
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // WebAssembly를 사용한 프레임 처리
+    const frameData = new Uint8Array(video.videoWidth * video.videoHeight * 4)
+    const tempCanvas = document.createElement('canvas')
+    const tempCtx = tempCanvas.getContext('2d')
+    if (!tempCtx) return
+
+    tempCanvas.width = video.videoWidth
+    tempCanvas.height = video.videoHeight
+    tempCtx.drawImage(video, 0, 0)
+    const imageData = tempCtx.getImageData(0, 0, video.videoWidth, video.videoHeight)
+    
+    const processedData = videoProcessorRef.current.process_frame(imageData.data)
+    const processedImageData = new ImageData(
+      new Uint8ClampedArray(processedData),
+      video.videoWidth,
+      video.videoHeight
+    )
+
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    ctx.putImageData(processedImageData, 0, 0)
+
+    requestAnimationFrame(handleVideoFrame)
+  }
 
   return (
     <div
@@ -223,7 +273,7 @@ function Carplay({
       className="App"
       ref={mainElem}
     >
-      {(deviceFound === false || isLoading) && pathname === '/' && (
+      {(deviceFound === false || !isPlugged) && pathname === '/' && (
         <div
           style={{
             position: 'absolute',
@@ -263,6 +313,20 @@ function Carplay({
       >
         <canvas ref={canvasRef} id={'video'} style={isPlugged ? { height: '100%' } : undefined} />
       </div>
+      {isLoading && (
+        <div className="loading-container">
+          <Loader type="ThreeDots" color="#00BFFF" height={100} width={100} />
+        </div>
+      )}
+      {error && <div className="error-message">{error}</div>}
+      <video
+        ref={videoRef}
+        style={{ display: 'none' }}
+        onLoadedData={() => {
+          setIsLoading(false)
+          handleVideoFrame()
+        }}
+      />
     </div>
   )
 }
