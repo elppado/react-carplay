@@ -99,10 +99,10 @@ function Carplay({
       switch (type) {
         case 'plugged':
           setPlugged(true)
-          if (settings.piMost && settings?.most?.stream) {
-            console.log('setting most stream')
-            stream(settings.most.stream)
-          }
+          // if (settings.piMost && settings?.most?.stream) {
+          //   console.log('setting most stream')
+          //   stream(settings.most.stream)
+          // }
           break
         case 'unplugged':
           setPlugged(false)

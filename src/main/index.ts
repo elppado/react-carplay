@@ -12,9 +12,10 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { DEFAULT_CONFIG } from 'node-carplay/node'
 import { Socket } from './Socket'
 import * as fs from 'fs'
-import { PiMost } from './PiMost'
-import { Canbus } from './Canbus'
+// import { PiMost } from './PiMost'
+// import { Canbus } from './Canbus'
 import { ExtraConfig, KeyBindings } from './Globals'
+// import { Stream } from 'socketmost/dist/modules/Messages'
 // import CarplayNode, {DEFAULT_CONFIG, CarplayMessage} from "node-carplay/node";
 
 let mainWindow: BrowserWindow
@@ -51,8 +52,8 @@ const EXTRA_CONFIG: ExtraConfig = {
   canConfig: {}
 }
 
-let piMost: null | PiMost
-let canbus: null | Canbus
+// let piMost: null | PiMost
+// let canbus: null | Canbus
 let socket: null | Socket
 
 fs.exists(configPath, (exists) => {
@@ -206,11 +207,11 @@ app.whenReady().then(() => {
 
   ipcMain.on('getSettings', handleSettingsReq)
 
-  ipcMain.on('saveSettings', saveSettings)
+  // ipcMain.on('saveSettings', saveSettings)
 
   // ipcMain.on('startStream', startMostStream)
 
-  ipcMain.on('quit', quit)
+  // ipcMain.on('quit', quit)
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -235,23 +236,23 @@ const saveSettings = (settings: ExtraConfig) => {
 
 // const startMostStream = (_: IpcMainEvent, most: Stream) => {
 //   console.log("stream request")
-//   if(piMost) {
-//     piMost.stream(most)
-//   }
+//   // if(piMost) {
+//   //   piMost.stream(most)
+//   // }
 // }
 
-const quit = (_: IpcMainEvent) => {
-  app.quit()
-}
+// const quit = (_: IpcMainEvent) => {
+//   app.quit()
+// }
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
+// // Quit when all windows are closed, except on macOS. There, it's common
+// // for applications and their menu bar to stay active until the user quits
+// // explicitly with Cmd + Q.
+// app.on('window-all-closed', () => {
+//   if (process.platform !== 'darwin') {
+//     app.quit()
+//   }
+// })
 
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
