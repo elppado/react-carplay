@@ -9,9 +9,6 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { ExtraConfig } from '../../../main/Globals'
 import { useCarplayStore } from '../store/store'
 import { InitEvent } from './worker/render/RenderEvents'
-import init, { VideoProcessor } from '../../../wasm/pkg'
-// import { Dialog, DialogTitle, DialogContent, Slide, Button } from '@mui/material';
-// import { TransitionProps } from '@mui/material/transitions/transition';
 
 const width = 1920
 const height = 720
@@ -215,56 +212,6 @@ function Carplay({
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const videoProcessorRef = useRef<VideoProcessor | null>(null)
-
-  useEffect(() => {
-    const initWasm = async () => {
-      try {
-        await init()
-        if (videoRef.current) {
-          const { videoWidth, videoHeight } = videoRef.current
-          videoProcessorRef.current = new VideoProcessor(videoWidth, videoHeight)
-        }
-      } catch (err) {
-        console.error('Failed to initialize WebAssembly:', err)
-      }
-    }
-
-    initWasm()
-  }, [])
-
-  const handleVideoFrame = () => {
-    if (!videoRef.current || !canvasRef.current || !videoProcessorRef.current) return
-
-    const video = videoRef.current
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    // WebAssembly를 사용한 프레임 처리
-    const frameData = new Uint8Array(video.videoWidth * video.videoHeight * 4)
-    const tempCanvas = document.createElement('canvas')
-    const tempCtx = tempCanvas.getContext('2d')
-    if (!tempCtx) return
-
-    tempCanvas.width = video.videoWidth
-    tempCanvas.height = video.videoHeight
-    tempCtx.drawImage(video, 0, 0)
-    const imageData = tempCtx.getImageData(0, 0, video.videoWidth, video.videoHeight)
-    
-    const processedData = videoProcessorRef.current.process_frame(imageData.data)
-    const processedImageData = new ImageData(
-      new Uint8ClampedArray(processedData),
-      video.videoWidth,
-      video.videoHeight
-    )
-
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    ctx.putImageData(processedImageData, 0, 0)
-
-    requestAnimationFrame(handleVideoFrame)
-  }
 
   return (
     <div
@@ -322,10 +269,6 @@ function Carplay({
       <video
         ref={videoRef}
         style={{ display: 'none' }}
-        onLoadedData={() => {
-          setIsLoading(false)
-          handleVideoFrame()
-        }}
       />
     </div>
   )
