@@ -99,10 +99,6 @@ function Carplay({
       switch (type) {
         case 'plugged':
           setPlugged(true)
-          if (settings.piMost && settings?.most?.stream) {
-            console.log('setting most stream')
-            stream(settings.most.stream)
-          }
           break
         case 'unplugged':
           setPlugged(false)
@@ -113,7 +109,6 @@ function Carplay({
           break
         case 'audio':
           clearRetryTimeout()
-
           processAudio(ev.data.message)
           break
         case 'media':
@@ -198,15 +193,13 @@ function Carplay({
     }
 
     navigator.usb.ondisconnect = async (): Promise<void> => {
-      const device = await findDevice()
-      if (!device) {
-        carplayWorker.postMessage({ type: 'stop' })
-        setDeviceFound(false)
-      }
+      setPlugged(false)
+      setDeviceFound(false)
+      setReceivingVideo(false)
     }
 
-    //checkDevice()
-  }, [carplayWorker, checkDevice])
+    checkDevice()
+  }, [checkDevice])
 
   // const onClick = useCallback(() => {
   //   checkDevice(true)

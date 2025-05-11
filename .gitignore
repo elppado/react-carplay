@@ -1,22 +1,57 @@
-<<<<<<< HEAD
-#directories
-bower_components
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
 node_modules
 dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Build
+out
 build
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# System files
+.DS_Store
+Thumbs.db
+
+#directories
+bower_components
 assets
 .idea
 
 #files
 *.tgz
-*.log
 *.apk
 .idea/workspace.xml
 *.xml
-
-=======
-node_modules
-dist
-out
-*.log*
->>>>>>> origin/v4
