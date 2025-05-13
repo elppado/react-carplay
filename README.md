@@ -13,7 +13,6 @@ This project is forked from [rhysmorgan134/react-carplay](https://github.com/rhy
 - Keyboard controls for navigation and interaction
 - Siri voice assistant integration
 - Clean, minimal interface
-- Cross-platform support (Linux, macOS)
 
 ## Prerequisites
 
@@ -26,7 +25,7 @@ This project is forked from [rhysmorgan134/react-carplay](https://github.com/rhy
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/react-carplay.git
+git clone https://github.com/elppado/react-carplay.git
 cd react-carplay
 ```
 
@@ -87,21 +86,6 @@ The application can be configured through the settings interface. Key configurat
 - Optimized performance
 - Removed unused features for better efficiency
 
-## Known Issues
-
-- Some graphics-related warnings may appear in the console (these are generally harmless)
-- Performance may vary depending on hardware capabilities
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Original project by rhysmorgan134
-- Carlinkit for the CarPlay dongle
-- Electron team for the framework
