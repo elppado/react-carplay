@@ -1,50 +1,107 @@
 # React-Carplay
 
-## FORKED FROM 
-`https://github.com/rhysmorgan134/react-carplay/`
+A React-based CarPlay application that utilizes the Carlinkit dongle to provide CarPlay functionality for Raspberry Pi and other Linux-based systems.
 
-
-## What I Did
-
-Removed unnecessary parts, made slight optimizations, and fixed some bugs.
-
-- Restored keyboard functionality.
-- Made the Siri button usable (via the keyboard).
-- Removed all tabs and changed the background color.
-- Modified everything to suit my preferences.
-
-
-
-This is a react based carplay application, that utilised the Carlinkit dongle to provide raspberry pi (and others) compatible
-carplay application.
+## Fork Information
+This project is forked from [rhysmorgan134/react-carplay](https://github.com/rhysmorgan134/react-carplay/)
 
 ## Features
 
- - Carplay fully configurable upto 60fps @ 1080p (hardware capability dependent)
+- Full CarPlay functionality with configurable settings
+- Support for high-resolution display (up to 1080p)
+- Configurable frame rate (up to 60fps, hardware dependent)
+- Keyboard controls for navigation and interaction
+- Siri voice assistant integration
+- Clean, minimal interface
+- Cross-platform support (Linux, macOS)
 
+## Prerequisites
 
+- Node.js (v14 or higher)
+- npm or yarn
+- Carlinkit dongle
+- Linux-based system (Raspberry Pi, Ubuntu, etc.)
 
-## RUN and Build
+## Installation
 
-simple run
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/react-carplay.git
+cd react-carplay
+```
 
-`npm start`
+2. Install dependencies:
+```bash
+npm install
+```
 
+## Running the Application
 
+### Development Mode
+```bash
+npm start
+```
 
-build
+### Building for Production
 
-`npm run build:armLinux`
+For ARM Linux (Raspberry Pi):
+```bash
+npm run build:armLinux
+```
 
+After building, run the AppImage:
+```bash
+./react-carplay-4.0.0-arm64.AppImage
+```
 
+## Configuration
 
-Then run the AppImage
+The application can be configured through the settings interface. Key configuration options include:
 
-`./react-carplay-4.0.0-arm64.AppImage`
+- Display resolution
+- Frame rate
+- Keyboard bindings
+- Audio settings
+- USB device permissions
 
+## Keyboard Controls
 
-# To Do
-- Remove unnecessary parts.
-- Make it faster and more efficient.
-- Update all code and eliminate bugs and errors.
-- Integrate it with my car.
+- Arrow keys: Navigation
+- Space: Select
+- Backspace: Back
+- H: Home
+- P: Play
+- O: Pause
+- M: Next
+- N: Previous
+- S: Siri
+- Z: Enable Night Mode
+- X: Disable Night Mode
+
+## Recent Changes
+
+- Restored keyboard functionality
+- Implemented Siri button functionality
+- Simplified UI by removing unnecessary tabs
+- Customized background and theme
+- Optimized performance
+- Removed unused features for better efficiency
+
+## Known Issues
+
+- Some graphics-related warnings may appear in the console (these are generally harmless)
+- Performance may vary depending on hardware capabilities
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Original project by rhysmorgan134
+- Carlinkit for the CarPlay dongle
+- Electron team for the framework
