@@ -3,7 +3,6 @@ import {
   shell,
   BrowserWindow,
   session,
-  systemPreferences,
   IpcMainEvent,
   ipcMain
 } from 'electron'
@@ -11,17 +10,19 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { DEFAULT_CONFIG } from 'node-carplay/node'
 import { Socket } from './Socket'
+import { ExtraConfig, KeyBindings } from './Globals'
+
 import * as fs from 'fs'
 // import { PiMost } from './PiMost'
 // import { Canbus } from './Canbus'
-import { ExtraConfig, KeyBindings } from './Globals'
+
 // import { Stream } from 'socketmost/dist/modules/Messages'
 // import CarplayNode, {DEFAULT_CONFIG, CarplayMessage} from "node-carplay/node";
 
 let mainWindow: BrowserWindow
 const appPath: string = app.getPath('userData')
 const configPath: string = appPath + '/config.json'
-console.log(configPath)
+// console.log(configPath)
 let config: null | ExtraConfig
 
 const DEFAULT_BINDINGS: KeyBindings = {
@@ -52,44 +53,47 @@ const EXTRA_CONFIG: ExtraConfig = {
   canConfig: {}
 }
 
-// let piMost: null | PiMost
-// let canbus: null | Canbus
+const saveSettings = (settings: ExtraConfig) => {
+  console.log('saving settings', settings)
+  fs.writeFileSync(configPath, JSON.stringify(settings))
+}
+
 let socket: null | Socket
 
-fs.exists(configPath, (exists) => {
-  if (exists) {
-    config = JSON.parse(fs.readFileSync(configPath).toString())
-    const configKeys = JSON.stringify(Object.keys({ ...config }).sort())
-    const defaultKeys = JSON.stringify(Object.keys({ ...EXTRA_CONFIG }).sort())
-    if (configKeys !== defaultKeys) {
-      console.log('config updating')
-      config = { ...EXTRA_CONFIG, ...config }
-      console.log('new config', config)
-      fs.writeFileSync(configPath, JSON.stringify(config))
-    }
-    console.log('config read')
-  } else {
-    fs.writeFileSync(configPath, JSON.stringify(EXTRA_CONFIG))
-    config = JSON.parse(fs.readFileSync(configPath).toString())
-    console.log('config created and read')
+try {
+  fs.accessSync(configPath)
+  config = JSON.parse(fs.readFileSync(configPath).toString())
+  const configKeys = JSON.stringify(Object.keys({ ...config }).sort())
+  const defaultKeys = JSON.stringify(Object.keys({ ...EXTRA_CONFIG }).sort())
+  if (configKeys !== defaultKeys) {
+    console.log('config updating')
+    config = { ...EXTRA_CONFIG, ...config }
+    console.log('new config', config)
+    fs.writeFileSync(configPath, JSON.stringify(config))
   }
-  socket = new Socket(config!, saveSettings)
-  // if(config!.most) {
-  //   console.log('creating pi most in main')
-  //   piMost = new PiMost(socket)
-  // }
+  console.log('config read')
+} catch {
+  fs.writeFileSync(configPath, JSON.stringify(EXTRA_CONFIG))
+  config = JSON.parse(fs.readFileSync(configPath).toString())
+  console.log('config created and read')
+}
 
-  // if(config!.canbus) {
-  //   console.log("Configuring can", config!.canConfig)
-  //   canbus = new Canbus('can0',  socket, config!.canConfig)
-  //   canbus.on('lights', (data) => {
-  //     console.log('lights', data)
-  //   })
-  //   canbus.on('reverse', (data) => {
-  //     mainWindow?.webContents?.send('reverse', data)
-  //   })
-  // }
-})
+socket = new Socket(config!, saveSettings)
+// if(config!.most) {
+//   console.log('creating pi most in main')
+//   piMost = new PiMost(socket)
+// }
+
+// if(config!.canbus) {
+//   console.log("Configuring can", config!.canConfig)
+//   canbus = new Canbus('can0',  socket, config!.canConfig)
+//   canbus.on('lights', (data) => {
+//     console.log('lights', data)
+//   })
+//   canbus.on('reverse', (data) => {
+//     mainWindow?.webContents?.send('reverse', data)
+//   })
+// }
 
 const handleSettingsReq = (_: IpcMainEvent) => {
   console.log('settings request')
@@ -170,7 +174,9 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
   app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
-  systemPreferences.askForMediaAccess('microphone')
+  // if (process.platform === 'darwin') {
+  //   systemPreferences.askForMediaAccess('microphZone')
+  // }
   mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     details.responseHeaders!['Cross-Origin-Opener-Policy'] = ['same-origin']
     details.responseHeaders!['Cross-Origin-Embedder-Policy'] = ['require-corp']
@@ -228,11 +234,6 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
-
-const saveSettings = (settings: ExtraConfig) => {
-  console.log('saving settings', settings)
-  fs.writeFileSync(configPath, JSON.stringify(settings))
-}
 
 // const startMostStream = (_: IpcMainEvent, most: Stream) => {
 //   console.log("stream request")
