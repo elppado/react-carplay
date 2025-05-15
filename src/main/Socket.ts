@@ -6,18 +6,17 @@ import { Stream } from 'socketmost/dist/modules/Messages'
 export enum MessageNames {
   Connection = 'connection',
   GetSettings = 'getSettings',
-  SaveSettings = 'saveSettings',
   Stream = 'stream'
 }
 
 export class Socket extends EventEmitter {
   config: ExtraConfig
   io: Server
-  saveSettings: (settings: ExtraConfig) => void
-  constructor(config: ExtraConfig, saveSettings: (settings: ExtraConfig) => void) {
+  private port: number = 4000
+
+  constructor(config: ExtraConfig) {
     super()
     this.config = config
-    this.saveSettings = saveSettings
     this.io = new Server({
       cors: {
         origin: '*'
@@ -31,16 +30,27 @@ export class Socket extends EventEmitter {
         this.sendSettings()
       })
 
-      socket.on(MessageNames.SaveSettings, (settings: ExtraConfig) => {
-        this.saveSettings(settings)
-      })
-
       socket.on(MessageNames.Stream, (stream: Stream) => {
         this.emit(MessageNames.Stream, stream)
       })
     })
 
-    this.io.listen(4000)
+    this.startServer()
+  }
+
+  private startServer(): void {
+    try {
+      this.io.listen(this.port)
+      console.log(`Socket.IO server listening on port ${this.port}`)
+    } catch (error: any) {
+      if (error.code === 'EADDRINUSE') {
+        console.log(`Port ${this.port} is in use, trying ${this.port + 1}`)
+        this.port++
+        this.startServer()
+      } else {
+        console.error('Failed to start Socket.IO server:', error)
+      }
+    }
   }
 
   sendSettings(): void {

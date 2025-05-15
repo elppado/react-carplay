@@ -12,7 +12,7 @@ import { DEFAULT_CONFIG } from 'node-carplay/node'
 import { Socket } from './Socket'
 import { ExtraConfig, KeyBindings } from './Globals'
 
-import * as fs from 'fs'
+// import * as fs from 'fs'
 // import { PiMost } from './PiMost'
 // import { Canbus } from './Canbus'
 
@@ -20,10 +20,7 @@ import * as fs from 'fs'
 // import CarplayNode, {DEFAULT_CONFIG, CarplayMessage} from "node-carplay/node";
 
 let mainWindow: BrowserWindow
-const appPath: string = app.getPath('userData')
-const configPath: string = appPath + '/config.json'
-// console.log(configPath)
-let config: null | ExtraConfig
+let config: ExtraConfig
 
 const DEFAULT_BINDINGS: KeyBindings = {
   left: 'ArrowLeft',
@@ -43,6 +40,9 @@ const DEFAULT_BINDINGS: KeyBindings = {
 
 const EXTRA_CONFIG: ExtraConfig = {
   ...DEFAULT_CONFIG,
+  width: 1920,
+  height: 720,
+  dpi: 300,
   kiosk: false,
   camera: '',
   microphone: '',
@@ -53,32 +53,9 @@ const EXTRA_CONFIG: ExtraConfig = {
   canConfig: {}
 }
 
-const saveSettings = (settings: ExtraConfig) => {
-  console.log('saving settings', settings)
-  fs.writeFileSync(configPath, JSON.stringify(settings))
-}
+config = EXTRA_CONFIG
+const socket = new Socket(config)
 
-let socket: null | Socket
-
-try {
-  fs.accessSync(configPath)
-  config = JSON.parse(fs.readFileSync(configPath).toString())
-  const configKeys = JSON.stringify(Object.keys({ ...config }).sort())
-  const defaultKeys = JSON.stringify(Object.keys({ ...EXTRA_CONFIG }).sort())
-  if (configKeys !== defaultKeys) {
-    console.log('config updating')
-    config = { ...EXTRA_CONFIG, ...config }
-    console.log('new config', config)
-    fs.writeFileSync(configPath, JSON.stringify(config))
-  }
-  console.log('config read')
-} catch {
-  fs.writeFileSync(configPath, JSON.stringify(EXTRA_CONFIG))
-  config = JSON.parse(fs.readFileSync(configPath).toString())
-  console.log('config created and read')
-}
-
-socket = new Socket(config!, saveSettings)
 // if(config!.most) {
 //   console.log('creating pi most in main')
 //   piMost = new PiMost(socket)
@@ -100,65 +77,56 @@ const handleSettingsReq = (_: IpcMainEvent) => {
   mainWindow?.webContents.send('settings', config)
 }
 
+// Add Raspberry Pi specific optimizations
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
 app.commandLine.appendSwitch('disable-webusb-security', 'true')
-console.log(app.commandLine.hasSwitch('disable-webusb-security'))
+app.commandLine.appendSwitch('enable-gpu-rasterization')  // Enable GPU rasterization
+app.commandLine.appendSwitch('enable-zero-copy')         // Enable zero-copy
+app.commandLine.appendSwitch('ignore-gpu-blocklist')     // Ignore GPU blocklist
+app.commandLine.appendSwitch('enable-native-gpu-memory-buffers')  // Enable native GPU memory buffers
+app.commandLine.appendSwitch('enable-accelerated-2d-canvas')      // Enable accelerated 2D canvas
+app.commandLine.appendSwitch('enable-accelerated-mjpeg-decode')   // Enable accelerated MJPEG decode
+app.commandLine.appendSwitch('enable-accelerated-video-decode')   // Enable accelerated video decode
+app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder')  // Enable VAAPI video decoder
+
 function createWindow(): void {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     transparent: true,
-    width: config!.width,
-    height: config!.height,
-    kiosk: config!.kiosk,
+    width: config.width,
+    height: config.height,
+    kiosk: config.kiosk,
     show: false,
     frame: false,
     fullscreen: false,
     autoHideMenuBar: true,
+    backgroundColor: '#2c3e50',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
-      webSecurity: false
+      webSecurity: false,
+      backgroundThrottling: false
     }
   })
-  mainWindow.setBackgroundColor('#333333')
-  app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
-
-  // mainWindow.webContents.session.setDevicePermissionHandler((details) => {
-  //   if (true) {
-  //     if (details.device.vendorId === 4884 && details.device.productId === 5408) {
-  //       // Always allow this type of device (this allows skipping the call to `navigator.hid.requestDevice` first)
-  //       return true
-  //     }
-  //   }
-  //   return false
-  // })
-
-  mainWindow.webContents.session.setPermissionCheckHandler(() => {
-    return true
-  })
-
-  mainWindow.webContents.session.setDevicePermissionHandler((details) => {
-    if (details.device.vendorId === 4884) {
-      return true
-    } else {
-      return false
-    }
-  })
-
-  mainWindow.webContents.session.on('select-usb-device', (event, details, callback) => {
-    event.preventDefault()
-    const selectedDevice = details.deviceList.find((device) => {
-      return device.vendorId === 4884 && (device.productId === 5408 || device.productId === 5408)
-    })
-
-    callback(selectedDevice?.deviceId)
-  })
-  // app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+  })
+
+  // Essential handlers only
+  mainWindow.webContents.session.setPermissionCheckHandler(() => true)
+  mainWindow.webContents.session.setDevicePermissionHandler((details) => 
+    details.device.vendorId === 4884
+  )
+
+  mainWindow.webContents.session.on('select-usb-device', (event, details, callback) => {
+    event.preventDefault()
+    const selectedDevice = details.deviceList.find((device) => 
+      device.vendorId === 4884 && (device.productId === 5408 || device.productId === 5408)
+    )
+    callback(selectedDevice?.deviceId)
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -166,22 +134,12 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
+  // Load the app
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
-  app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
-  // if (process.platform === 'darwin') {
-  //   systemPreferences.askForMediaAccess('microphZone')
-  // }
-  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-    details.responseHeaders!['Cross-Origin-Opener-Policy'] = ['same-origin']
-    details.responseHeaders!['Cross-Origin-Embedder-Policy'] = ['require-corp']
-    callback({ responseHeaders: details.responseHeaders })
-  })
 }
 
 // This method will be called when Electron has finished

@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { RotatingLines } from 'react-loader-spinner'
 //import './App.css'
-import { findDevice, requestDevice, CommandMapping } from 'node-carplay/web'
-import { CarPlayWorker, KeyCommand } from './worker/types'
+import { findDevice, requestDevice, CommandMapping, CarplayMessage } from 'node-carplay/web'
+import { CarPlayWorker, KeyCommand, CarplayWorkerMessage } from './worker/types'
 import useCarplayAudio from './useCarplayAudio'
 import { useCarplayTouch } from './useCarplayTouch'
 import { useLocation } from 'react-router-dom'
@@ -18,7 +18,7 @@ const height = 720
 const videoChannel = new MessageChannel()
 const micChannel = new MessageChannel()
 
-const RETRY_DELAY_MS = 5000
+const RETRY_DELAY_MS = 1
 
 interface CarplayProps {
   receivingVideo: boolean
@@ -43,13 +43,13 @@ function Carplay({
   const mainElem = useRef<HTMLDivElement>(null)
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const stream = useCarplayStore((state) => state.stream)
-  const config = {
+
+  const config = useMemo(() => ({
     fps: settings.fps,
-    width: width,
-    height: height,
+    width,
+    height,
     mediaDelay: settings.mediaDelay
-  }
-  console.log(pathname)
+  }), [settings.fps, settings.mediaDelay])
 
   const renderWorker = useMemo(() => {
     if (!canvasElement) return
@@ -92,95 +92,78 @@ function Carplay({
     }
   }, [])
 
-  // subscribe to worker messages
-  useEffect(() => {
-    carplayWorker.onmessage = (ev): void => {
-      const { type } = ev.data
-      switch (type) {
-        case 'plugged':
-          setPlugged(true)
-          // if (settings.piMost && settings?.most?.stream) {
-          //   console.log('setting most stream')
-          //   stream(settings.most.stream)
-          // }
-          break
-        case 'unplugged':
-          setPlugged(false)
-          break
-        case 'requestBuffer':
-          clearRetryTimeout()
-          getAudioPlayer(ev.data.message)
-          break
-        case 'audio':
-          clearRetryTimeout()
-
-          processAudio(ev.data.message)
-          break
-        case 'media':
-          //TODO: implement
-          break
-        case 'command': {
-          const {
-            message: { value }
-          } = ev.data
-          switch (value) {
-            case CommandMapping.startRecordAudio: {
-              startRecording()
-              break
-            }
-            case CommandMapping.stopRecordAudio: {
-              stopRecording()
-              break
-            }
-            case CommandMapping.requestHostUI: {
-              break
-            }
-          }
-          break
+  const handleWorkerMessage = useCallback((ev: CarplayWorkerMessage) => {
+    const { type } = ev.data
+    switch (type) {
+      case 'plugged':
+        setPlugged(true)
+        break
+      case 'unplugged':
+        setPlugged(false)
+        break
+      case 'requestBuffer':
+        clearRetryTimeout()
+        getAudioPlayer(ev.data.message)
+        break
+      case 'audio':
+        clearRetryTimeout()
+        processAudio(ev.data.message)
+        break
+      case 'media':
+        break
+      case 'command': {
+        const {
+          message: { value }
+        } = ev.data
+        switch (value) {
+          case CommandMapping.startRecordAudio:
+            startRecording()
+            break
+          case CommandMapping.stopRecordAudio:
+            stopRecording()
+            break
+          case CommandMapping.requestHostUI:
+            break
         }
-        case 'failure': {
-          if (retryTimeoutRef.current == null) {
-            console.error(`Carplay initialization failed -- Reloading page in ${RETRY_DELAY_MS}ms`)
-            retryTimeoutRef.current = setTimeout(() => {
-              window.location.reload()
-            }, RETRY_DELAY_MS)
-          }
-          break
+        break
+      }
+      case 'failure': {
+        if (retryTimeoutRef.current == null) {
+          retryTimeoutRef.current = setTimeout(() => {
+            window.location.reload()
+          }, RETRY_DELAY_MS)
         }
+        break
       }
     }
-  }, [
-    carplayWorker,
-    clearRetryTimeout,
-    getAudioPlayer,
-    processAudio,
-    renderWorker,
-    startRecording,
-    stopRecording
-  ])
+  }, [clearRetryTimeout, getAudioPlayer, processAudio, startRecording, stopRecording])
+
+  useEffect(() => {
+    carplayWorker.onmessage = handleWorkerMessage
+  }, [carplayWorker, handleWorkerMessage])
+
+  const handleResize = useCallback(() => {
+    carplayWorker.postMessage({ type: 'frame' })
+  }, [carplayWorker])
 
   useEffect(() => {
     const element = mainElem?.current
     if (!element) return
-    const observer = new ResizeObserver(() => {
-      console.log('size change')
-      carplayWorker.postMessage({ type: 'frame' })
-    })
+    const observer = new ResizeObserver(handleResize)
     observer.observe(element)
     return () => {
       observer.disconnect()
     }
-  }, [])
+  }, [handleResize])
 
   useEffect(() => {
     carplayWorker.postMessage({ type: 'keyCommand', command: command as KeyCommand })
-  }, [commandCounter])
+  }, [command, commandCounter, carplayWorker])
 
   const checkDevice = useCallback(
     async (request: boolean = false) => {
       const device = request ? await requestDevice() : await findDevice()
       if (device) {
-        console.log('starting in check')
         setDeviceFound(true)
         setReceivingVideo(true)
         carplayWorker.postMessage({ type: 'start', payload: { config } })
@@ -188,42 +171,33 @@ function Carplay({
         setDeviceFound(false)
       }
     },
-    [carplayWorker]
+    [carplayWorker, config, setReceivingVideo]
   )
 
-  // usb connect/disconnect handling and device check
   useEffect(() => {
-    navigator.usb.onconnect = async (): Promise<void> => {
-      checkDevice()
-    }
-
-    navigator.usb.ondisconnect = async (): Promise<void> => {
+    navigator.usb.onconnect = () => checkDevice()
+    navigator.usb.ondisconnect = async () => {
       const device = await findDevice()
       if (!device) {
         carplayWorker.postMessage({ type: 'stop' })
         setDeviceFound(false)
       }
     }
-
-    //checkDevice()
   }, [carplayWorker, checkDevice])
-
-  // const onClick = useCallback(() => {
-  //   checkDevice(true)
-  // }, [checkDevice])
 
   const sendTouchEvent = useCarplayTouch(carplayWorker, width, height)
 
   const isLoading = !isPlugged
+  const isRootPath = pathname === '/'
 
   return (
     <div
-      style={pathname === '/' ? { height: '100%', touchAction: 'none' } : { height: '100%' }}
+      style={isRootPath ? { height: '100%', touchAction: 'none' } : { height: '100%' }}
       id={'main'}
       className="App"
       ref={mainElem}
     >
-      {(deviceFound === false || isLoading) && pathname === '/' && (
+      {(deviceFound === false || isLoading) && isRootPath && (
         <div
           style={{
             position: 'absolute',
@@ -258,7 +232,7 @@ function Carplay({
         style={{
           width: '100%',
           height: '100%',
-          display: 'flex'
+          display: 'flex'       
         }}
       >
         <canvas ref={canvasRef} id={'video'} style={isPlugged ? { height: '100%' } : undefined} />
