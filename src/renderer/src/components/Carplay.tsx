@@ -18,7 +18,7 @@ const height = 720
 const videoChannel = new MessageChannel()
 const micChannel = new MessageChannel()
 
-const RETRY_DELAY_MS = 1
+const RETRY_DELAY_MS = 0
 
 interface CarplayProps {
   receivingVideo: boolean
@@ -27,6 +27,55 @@ interface CarplayProps {
   command: string
   commandCounter: number
 }
+
+// 로딩 컴포넌트 분리
+const LoadingIndicator = React.memo(() => (
+  <div
+    style={{
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center'
+    }}
+  >
+    <RotatingLines
+      strokeColor="grey"
+      strokeWidth="5"
+      animationDuration="1"
+      width="128"
+      visible={true}
+    />
+  </div>
+))
+
+// 비디오 컨테이너 컴포넌트 분리
+const VideoContainer = React.memo(({ 
+  sendTouchEvent, 
+  canvasRef, 
+  isPlugged 
+}: { 
+  sendTouchEvent: React.PointerEventHandler<HTMLDivElement>
+  canvasRef: React.RefObject<HTMLCanvasElement>
+  isPlugged: boolean 
+}) => (
+  <div
+    id="videoContainer"
+    onPointerDown={sendTouchEvent}
+    onPointerMove={sendTouchEvent}
+    onPointerUp={sendTouchEvent}
+    onPointerCancel={sendTouchEvent}
+    onPointerOut={sendTouchEvent}
+    style={{
+      width: '100%',
+      height: '100%',
+      display: 'flex'       
+    }}
+  >
+    <canvas ref={canvasRef} id={'video'} style={isPlugged ? { height: '100%' } : undefined} />
+  </div>
+))
 
 function Carplay({
   setReceivingVideo,
@@ -44,12 +93,12 @@ function Carplay({
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const stream = useCarplayStore((state) => state.stream)
 
-  const config = useMemo(() => ({
+  const config = {
     fps: settings.fps,
     width,
     height,
     mediaDelay: settings.mediaDelay
-  }), [settings.fps, settings.mediaDelay])
+  }
 
   const renderWorker = useMemo(() => {
     if (!canvasElement) return
@@ -190,53 +239,25 @@ function Carplay({
   const isLoading = !isPlugged
   const isRootPath = pathname === '/'
 
+  const mainStyle = useMemo(() => 
+    isRootPath ? { height: '100%', touchAction: 'none' } : { height: '100%' }
+  , [isRootPath])
+
   return (
     <div
-      style={isRootPath ? { height: '100%', touchAction: 'none' } : { height: '100%' }}
+      style={mainStyle}
       id={'main'}
       className="App"
       ref={mainElem}
     >
-      {(deviceFound === false || isLoading) && isRootPath && (
-        <div
-          style={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-        >
-          {deviceFound === false && (
-            <button rel="noopener noreferrer" style={{ display: 'none' }}></button>
-          )}
-          {deviceFound && (
-            <RotatingLines
-              strokeColor="grey"
-              strokeWidth="5"
-              animationDuration="0.75"
-              width="96"
-              visible={true}
-            />
-          )}
-        </div>
+      {isLoading && isRootPath && (
+        <LoadingIndicator />
       )}
-      <div
-        id="videoContainer"
-        onPointerDown={sendTouchEvent}
-        onPointerMove={sendTouchEvent}
-        onPointerUp={sendTouchEvent}
-        onPointerCancel={sendTouchEvent}
-        onPointerOut={sendTouchEvent}
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex'       
-        }}
-      >
-        <canvas ref={canvasRef} id={'video'} style={isPlugged ? { height: '100%' } : undefined} />
-      </div>
+      <VideoContainer 
+        sendTouchEvent={sendTouchEvent}
+        canvasRef={canvasRef}
+        isPlugged={isPlugged}
+      />
     </div>
   )
 }

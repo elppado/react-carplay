@@ -72,25 +72,29 @@ const socket = new Socket(config)
 //   })
 // }
 
+// Performance optimizations
+const performanceSwitches = [
+  ['autoplay-policy', 'no-user-gesture-required'],
+  ['disable-webusb-security', 'true'],
+  ['enable-gpu-rasterization'],
+  ['enable-zero-copy'],
+  ['ignore-gpu-blocklist'],
+  ['enable-native-gpu-memory-buffers'],
+  ['enable-accelerated-2d-canvas'],
+  ['enable-accelerated-mjpeg-decode'],
+  ['enable-accelerated-video-decode'],
+  ['enable-features', 'VaapiVideoDecoder']
+]
+
+performanceSwitches.forEach(([switchName, value]) => {
+  app.commandLine.appendSwitch(switchName, value || '')
+})
+
 const handleSettingsReq = (_: IpcMainEvent) => {
-  console.log('settings request')
   mainWindow?.webContents.send('settings', config)
 }
 
-// Add Raspberry Pi specific optimizations
-app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
-app.commandLine.appendSwitch('disable-webusb-security', 'true')
-app.commandLine.appendSwitch('enable-gpu-rasterization')  // Enable GPU rasterization
-app.commandLine.appendSwitch('enable-zero-copy')         // Enable zero-copy
-app.commandLine.appendSwitch('ignore-gpu-blocklist')     // Ignore GPU blocklist
-app.commandLine.appendSwitch('enable-native-gpu-memory-buffers')  // Enable native GPU memory buffers
-app.commandLine.appendSwitch('enable-accelerated-2d-canvas')      // Enable accelerated 2D canvas
-app.commandLine.appendSwitch('enable-accelerated-mjpeg-decode')   // Enable accelerated MJPEG decode
-app.commandLine.appendSwitch('enable-accelerated-video-decode')   // Enable accelerated video decode
-app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder')  // Enable VAAPI video decoder
-
 function createWindow(): void {
-  // Create the browser window.
   mainWindow = new BrowserWindow({
     transparent: true,
     width: config.width,
@@ -115,7 +119,7 @@ function createWindow(): void {
     mainWindow.show()
   })
 
-  // Essential handlers only
+  // USB device handling
   mainWindow.webContents.session.setPermissionCheckHandler(() => true)
   mainWindow.webContents.session.setDevicePermissionHandler((details) => 
     details.device.vendorId === 4884
@@ -124,7 +128,7 @@ function createWindow(): void {
   mainWindow.webContents.session.on('select-usb-device', (event, details, callback) => {
     event.preventDefault()
     const selectedDevice = details.deviceList.find((device) => 
-      device.vendorId === 4884 && (device.productId === 5408 || device.productId === 5408)
+      device.vendorId === 4884 && device.productId === 5408
     )
     callback(selectedDevice?.deviceId)
   })
@@ -134,7 +138,6 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  // Load the app
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
@@ -146,9 +149,8 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.commandLine.appendSwitch('enable-experimental-web-platform-features')
-app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
+
 app.whenReady().then(() => {
-  // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
   // const carplay = new CarplayNode(DEFAULT_CONFIG)
   //
@@ -186,7 +188,7 @@ app.whenReady().then(() => {
 
   createWindow()
 
-  app.on('activate', function () {
+  app.on('activate', () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
@@ -204,14 +206,11 @@ app.whenReady().then(() => {
 //   app.quit()
 // }
 
-// // Quit when all windows are closed, except on macOS. There, it's common
-// // for applications and their menu bar to stay active until the user quits
-// // explicitly with Cmd + Q.
-// app.on('window-all-closed', () => {
-//   if (process.platform !== 'darwin') {
-//     app.quit()
-//   }
-// })
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit()
+  }
+})
 
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
