@@ -1,19 +1,13 @@
 import { useEffect, useState, useCallback } from 'react'
 import { HashRouter as Router } from 'react-router-dom'
-import { RotatingLines } from 'react-loader-spinner'
 import './App.css'
 import Carplay from './components/Carplay'
 import { useCarplayStore } from './store/store'
 
-function App(): JSX.Element {
+function App(): JSX.Element | null {
   const [commandCounter, setCommandCounter] = useState(0)
   const [keyCommand, setKeyCommand] = useState('')
   const settings = useCarplayStore((state) => state.settings)
-  const getSettings = useCarplayStore((state) => state.getSettings)
-
-  useEffect(() => {
-    getSettings()
-  }, [getSettings])
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -42,19 +36,7 @@ function App(): JSX.Element {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [onKeyDown])
 
-  if (!settings) {
-    return (
-      <div className="full" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <RotatingLines
-          strokeColor="grey"
-          strokeWidth="5"
-          animationDuration="1"
-          width="64"
-          visible={true}
-        />
-      </div>
-    )
-  }
+  if (!settings) return null
 
   return (
     <Router>
