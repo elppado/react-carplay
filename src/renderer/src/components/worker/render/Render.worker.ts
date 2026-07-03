@@ -78,8 +78,10 @@ export class RenderWorker {
     if (this.decoder.state === 'unconfigured') {
       const decoderConfig = getDecoderConfig(frameData)
       if (decoderConfig) {
-        this.decoder.configure(decoderConfig)
-        console.log(decoderConfig)
+        this.decoder.configure({
+          ...decoderConfig,
+          hardwareAcceleration: 'prefer-hardware'
+        })
       }
     }
     if (this.decoder.state === 'configured') {

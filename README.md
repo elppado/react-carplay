@@ -3,6 +3,7 @@
 A React-based CarPlay application that utilizes the Carlinkit dongle to provide CarPlay functionality for Raspberry Pi and other Linux-based systems.
 
 ## Fork Information
+
 This project is forked from [rhysmorgan134/react-carplay](https://github.com/rhysmorgan134/react-carplay/)
 
 ## Features
@@ -13,55 +14,75 @@ This project is forked from [rhysmorgan134/react-carplay](https://github.com/rhy
 - Keyboard controls for navigation and interaction
 - Siri voice assistant integration
 - Clean, minimal interface
+- Raspberry Pi CM5 / ARM64 Linux optimizations
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
-- npm or yarn
+- Node.js 18+
+- npm
 - Carlinkit dongle
-- Linux-based system (Raspberry Pi, Ubuntu, etc.)
+- Linux-based system (Raspberry Pi CM5, Pi 5, Ubuntu, etc.)
 
 ## Installation
 
-1. Clone the repository:
 ```bash
 git clone https://github.com/elppado/react-carplay.git
 cd react-carplay
-```
-
-2. Install dependencies:
-```bash
 npm install
 ```
 
 ## Running the Application
 
 ### Development Mode
+
 ```bash
-npm start
+npm run dev
 ```
 
-### Building for Production
+### Building for Raspberry Pi CM5 (ARM64)
 
-For ARM Linux (Raspberry Pi):
 ```bash
-npm run build:armLinux
+npm run build:cm5
 ```
 
-After building, run the AppImage:
+Output:
+
 ```bash
-./react-carplay-4.0.0-arm64.AppImage
+./dist/react-carplay-1.0.2-cm5-arm64.AppImage
 ```
 
-## Configuration
+### Pi CM5 first-time setup
 
-The application can be configured through the settings interface. Key configuration options include:
+On the CM5 board:
 
-- Display resolution
-- Frame rate
-- Keyboard bindings
-- Audio settings
-- USB device permissions
+```bash
+chmod +x setup-pi.sh
+./setup-pi.sh
+```
+
+Copy the AppImage and launcher to `~/carplay`, then run:
+
+```bash
+~/carplay/launch-carplay.sh
+```
+
+Optional systemd autostart (replace `pi` with your username):
+
+```bash
+sudo cp systemd/carplay.service /etc/systemd/system/carplay@.service
+sudo systemctl enable carplay@pi
+sudo systemctl start carplay@pi
+```
+
+## Pi CM5 optimizations
+
+When running on ARM64 Linux (Raspberry Pi CM5 / Pi 5):
+
+- Kiosk + fullscreen mode enabled by default
+- 30 FPS default for smoother GPU decode on VideoCore VII
+- EGL + VA-API / V4L2 hardware H.264 decode
+- WebGL high-performance rendering without transparency overhead
+- CarPlay worker prewarmed at startup for faster dongle connection
 
 ## Keyboard Controls
 
@@ -77,15 +98,6 @@ The application can be configured through the settings interface. Key configurat
 - Z: Enable Night Mode
 - X: Disable Night Mode
 
-## Recent Changes
-
-- Restored keyboard functionality
-- Implemented Siri button functionality
-- Simplified UI by removing unnecessary tabs
-- Customized background and theme
-- Optimized performance
-- Removed unused features for better efficiency
-
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License.

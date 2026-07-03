@@ -4,36 +4,27 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { DEFAULT_EXTRA_CONFIG } from '../shared/defaultExtraConfig'
 import { Socket } from './Socket'
 import { ExtraConfig } from './Globals'
+import { applyPlatformSwitches, getWindowOptionsForPlatform } from './piOptimizations'
+import { isRaspberryPi } from './platform'
 
 let mainWindow: BrowserWindow
 const config: ExtraConfig = DEFAULT_EXTRA_CONFIG
 
-const performanceSwitches = [
-  ['autoplay-policy', 'no-user-gesture-required'],
-  ['disable-webusb-security', 'true'],
-  ['enable-gpu-rasterization'],
-  ['enable-zero-copy'],
-  ['ignore-gpu-blocklist'],
-  ['enable-native-gpu-memory-buffers'],
-  ['enable-accelerated-2d-canvas'],
-  ['enable-accelerated-mjpeg-decode'],
-  ['enable-accelerated-video-decode'],
-  ['enable-features', 'VaapiVideoDecoder']
-]
-
-performanceSwitches.forEach(([switchName, value]) => {
-  app.commandLine.appendSwitch(switchName, value || '')
+applyPlatformSwitches((name, value) => {
+  app.commandLine.appendSwitch(name, value || '')
 })
 
 function createWindow(): void {
+  const platformWindow = getWindowOptionsForPlatform()
+
   mainWindow = new BrowserWindow({
-    transparent: true,
+    transparent: platformWindow.transparent,
     width: config.width,
     height: config.height,
     kiosk: config.kiosk,
     show: true,
     frame: false,
-    fullscreen: false,
+    fullscreen: platformWindow.fullscreen,
     autoHideMenuBar: true,
     backgroundColor: '#000000',
     webPreferences: {
@@ -42,9 +33,14 @@ function createWindow(): void {
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
       webSecurity: false,
-      backgroundThrottling: false
+      backgroundThrottling: false,
+      offscreen: false
     }
   })
+
+  if (isRaspberryPi()) {
+    mainWindow.setFullScreen(true)
+  }
 
   mainWindow.webContents.session.setPermissionCheckHandler(() => true)
   mainWindow.webContents.session.setDevicePermissionHandler(
@@ -90,9 +86,11 @@ app.whenReady().then(() => {
     })
   })
 
-  app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
-  })
+  if (!isRaspberryPi()) {
+    app.on('browser-window-created', (_, window) => {
+      optimizer.watchWindowShortcuts(window)
+    })
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
