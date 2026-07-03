@@ -11,6 +11,18 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()]
   },
   renderer: {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/node-carplay') || id.includes('node-carplay')) {
+              return 'carplay'
+            }
+            return undefined
+          }
+        }
+      }
+    },
     resolve: {
       alias: {
         '@renderer': resolve('src/renderer/src'),
@@ -27,7 +39,7 @@ export default defineConfig({
           NodeGlobalsPolyfillPlugin({
             process: true,
             buffer: true
-          })
+          }) as never
         ]
       }
     },

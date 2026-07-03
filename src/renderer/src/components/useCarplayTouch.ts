@@ -1,17 +1,17 @@
-import { useState, useCallback } from 'react'
+import { useRef, useCallback } from 'react'
 import { TouchAction } from 'node-carplay/web'
 import { CarPlayWorker } from './worker/types'
 
 export const useCarplayTouch = (worker: CarPlayWorker, width: number, height: number) => {
-  const [pointerdown, setPointerDown] = useState(false)
+  const pointerDownRef = useRef(false)
 
   const sendTouchEvent: React.PointerEventHandler<HTMLDivElement> = useCallback(
     (e) => {
       let action = TouchAction.Up
       if (e.type === 'pointerdown') {
         action = TouchAction.Down
-        setPointerDown(true)
-      } else if (pointerdown) {
+        pointerDownRef.current = true
+      } else if (pointerDownRef.current) {
         switch (e.type) {
           case 'pointermove':
             action = TouchAction.Move
@@ -19,7 +19,7 @@ export const useCarplayTouch = (worker: CarPlayWorker, width: number, height: nu
           case 'pointerup':
           case 'pointercancel':
           case 'pointerout':
-            setPointerDown(false)
+            pointerDownRef.current = false
             action = TouchAction.Up
             break
         }
@@ -33,7 +33,7 @@ export const useCarplayTouch = (worker: CarPlayWorker, width: number, height: nu
         payload: { x: x / width, y: y / height, action }
       })
     },
-    [pointerdown, worker, width, height]
+    [worker, width, height]
   )
 
   return sendTouchEvent

@@ -1,61 +1,65 @@
 import { create } from 'zustand'
 import { ExtraConfig } from '../../../main/Globals'
-import { io } from 'socket.io-client'
+import { DEFAULT_EXTRA_CONFIG } from '../../../shared/defaultExtraConfig'
+import { io, Socket } from 'socket.io-client'
 import { Stream } from 'socketmost/dist/modules/Messages'
 
 interface CarplayStore {
-  settings: null | ExtraConfig
+  settings: ExtraConfig
   getSettings: () => void
   stream: (stream: Stream) => void
 }
 
-interface StatusStore {
-  reverse: boolean
-  lights: boolean
-  setReverse: (reverse: boolean) => void
+const START_PORT = 4000
+const MAX_PORT = 4010
+
+let socket: Socket | null = null
+let currentPort = START_PORT
+
+const bindSocketHandlers = (activeSocket: Socket) => {
+  activeSocket.on('settings', (settings: ExtraConfig) => {
+    useCarplayStore.setState(() => ({ settings }))
+  })
 }
 
-const connectSocket = (port: number) => {
-  const URL = `http://localhost:${port}`
-  const socket = io(URL)
-
-  socket.on('settings', (settings: ExtraConfig) => {
-    console.log('received settings', settings)
-    useCarplayStore.setState(() => ({ settings: settings }))
+const connectSocket = (port: number): Socket => {
+  const activeSocket = io(`http://localhost:${port}`, {
+    transports: ['websocket'],
+    autoConnect: true
   })
-
-  socket.on('reverse', (reverse) => {
-    console.log('reverse data', reverse)
-    useStatusStore.setState(() => ({ reverse: reverse }))
-  })
-
-  return socket
+  bindSocketHandlers(activeSocket)
+  return activeSocket
 }
 
-// Try ports starting from 4000
-let currentPort = 4000
-let socket = connectSocket(currentPort)
+const handleConnectError = () => {
+  if (currentPort >= MAX_PORT) {
+    console.error(`Failed to connect to Socket.IO server on ports ${START_PORT}-${MAX_PORT}`)
+    return
+  }
 
-socket.on('connect_error', () => {
-  console.log(`Failed to connect to port ${currentPort}, trying ${currentPort + 1}`)
-  currentPort++
-  socket = connectSocket(currentPort)
-})
+  switchSocketPort(currentPort + 1)
+}
 
-export const useCarplayStore = create<CarplayStore>()((set) => ({
-  settings: null,
+const switchSocketPort = (port: number) => {
+  if (socket) {
+    socket.off('connect_error', handleConnectError)
+    socket.removeAllListeners()
+    socket.disconnect()
+  }
+
+  currentPort = port
+  socket = connectSocket(port)
+  socket.on('connect_error', handleConnectError)
+}
+
+switchSocketPort(START_PORT)
+
+export const useCarplayStore = create<CarplayStore>()(() => ({
+  settings: DEFAULT_EXTRA_CONFIG,
   getSettings: (): void => {
-    socket.emit('getSettings')
+    socket?.emit('getSettings')
   },
   stream: (stream): void => {
-    socket.emit('stream', stream)
-  }
-}))
-
-export const useStatusStore = create<StatusStore>()((set) => ({
-  reverse: false,
-  lights: false,
-  setReverse: (reverse):void => {
-    set(() => ({ reverse: reverse }))
+    socket?.emit('stream', stream)
   }
 }))

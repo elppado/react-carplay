@@ -4,7 +4,7 @@ export type AudioPlayerKey = string & { __brand: 'AudioPlayerKey' }
 
 export type CarplayWorkerMessage =
   | { data: CarplayMessage }
-  | { data: { type: 'requestBuffer'; message: AudioData } }
+  | { data: { type: 'getAudioPlayer'; message: AudioData } }
 
 export type InitialisePayload = {
   videoPort: MessagePort
@@ -42,7 +42,7 @@ export type Command =
   | { type: 'start'; payload: StartPayload }
   | { type: 'touch'; payload: { x: number; y: number; action: TouchAction } }
   | { type: 'initialise'; payload: InitialisePayload }
-  | { type: 'audioBuffer'; payload: AudioPlayerPayload }
+  | { type: 'audioPlayer'; payload: AudioPlayerPayload }
   | { type: 'microphoneInput'; payload: Int16Array }
   | { type: 'frame' }
   | { type: 'keyCommand'; command: KeyCommand }
