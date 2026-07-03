@@ -5,7 +5,15 @@ import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfil
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin({exclude: ['node-carplay']})]
+    plugins: [externalizeDepsPlugin({ exclude: ['node-carplay'] })],
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'src/main/index.ts'),
+          native: resolve(__dirname, 'src/main/native/index.ts')
+        }
+      }
+    }
   },
   preload: {
     plugins: [externalizeDepsPlugin()]

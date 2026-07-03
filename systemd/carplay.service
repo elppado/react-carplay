@@ -1,14 +1,13 @@
 [Unit]
-Description=CarPlay for Raspberry Pi CM5
+Description=CarPlay for Raspberry Pi CM5 (native GStreamer)
 After=graphical.target network.target
 Wants=graphical.target
 
 [Service]
 Type=simple
 User=%i
-Environment=ELECTRON_OZONE_PLATFORM_HINT=auto
 Environment=LIBVA_DRIVER_NAME=v4l2request
-Environment=MESA_GL_VERSION_OVERRIDE=3.1
+Environment=CARPLAY_ELECTRON=0
 ExecStart=/home/%i/carplay/launch-carplay.sh
 Restart=on-failure
 RestartSec=3
