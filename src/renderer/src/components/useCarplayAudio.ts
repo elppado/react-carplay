@@ -4,7 +4,6 @@ import { PcmPlayer } from 'pcm-ringbuf-player'
 import { AudioPlayerKey, CarPlayWorker } from './worker/types'
 import { createAudioPlayerKey } from './worker/utils'
 
-//TODO: allow to configure
 const defaultAudioVolume = 1
 const defaultNavVolume = 0.5
 
@@ -13,7 +12,7 @@ const useCarplayAudio = (worker: CarPlayWorker, microphonePort: MessagePort) => 
   const [audioPlayers] = useState(new Map<AudioPlayerKey, PcmPlayer>())
 
   const getAudioPlayer = useCallback(
-    (audio: AudioData): PcmPlayer => {
+    async (audio: AudioData): Promise<PcmPlayer> => {
       const { decodeType, audioType } = audio
       const format = decodeTypeMap[decodeType]
       const audioKey = createAudioPlayerKey(decodeType, audioType)
@@ -22,7 +21,7 @@ const useCarplayAudio = (worker: CarPlayWorker, microphonePort: MessagePort) => 
       player = new PcmPlayer(format.frequency, format.channel)
       audioPlayers.set(audioKey, player)
       player.volume(defaultAudioVolume)
-      player.start()
+      await player.start()
       worker.postMessage({
         type: 'audioPlayer',
         payload: {
@@ -37,33 +36,30 @@ const useCarplayAudio = (worker: CarPlayWorker, microphonePort: MessagePort) => 
   )
 
   const processAudio = useCallback(
-    (audio: AudioData) => {
+    async (audio: AudioData) => {
       if (audio.volumeDuration) {
         const { volume, volumeDuration } = audio
-        const player = getAudioPlayer(audio)
+        const player = await getAudioPlayer(audio)
         player.volume(volume, volumeDuration)
       } else if (audio.command) {
         switch (audio.command) {
-          case AudioCommand.AudioNaviStart:
-            {
-              const navPlayer = getAudioPlayer(audio)
-              navPlayer.volume(defaultNavVolume)
-            }
+          case AudioCommand.AudioNaviStart: {
+            const navPlayer = await getAudioPlayer(audio)
+            navPlayer.volume(defaultNavVolume)
             break
+          }
           case AudioCommand.AudioMediaStart:
-          case AudioCommand.AudioOutputStart:
-            {
-              const mediaPlayer = getAudioPlayer(audio)
-              mediaPlayer.volume(defaultAudioVolume)
-            }
+          case AudioCommand.AudioOutputStart: {
+            const mediaPlayer = await getAudioPlayer(audio)
+            mediaPlayer.volume(defaultAudioVolume)
             break
+          }
         }
       }
     },
     [getAudioPlayer]
   )
 
-  // audio init
   useEffect(() => {
     const initMic = async (): Promise<void> => {
       try {

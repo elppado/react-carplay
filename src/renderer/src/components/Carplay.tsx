@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { RotatingLines } from 'react-loader-spinner'
-import { findDevice, requestDevice, CommandMapping } from 'node-carplay/web'
+import { findDevice, CommandMapping } from 'node-carplay/web'
 import { CarPlayWorker, KeyCommand, CarplayWorkerMessage } from './worker/types'
 import useCarplayAudio from './useCarplayAudio'
 import { useCarplayTouch } from './useCarplayTouch'
@@ -143,11 +143,11 @@ function Carplay({ settings, command, commandCounter }: CarplayProps): JSX.Eleme
           break
         case 'getAudioPlayer':
           clearRetryTimeout()
-          getAudioPlayer(ev.data.message)
+          void getAudioPlayer(ev.data.message)
           break
         case 'audio':
           clearRetryTimeout()
-          processAudio(ev.data.message)
+          void processAudio(ev.data.message)
           break
         case 'media':
           break
@@ -189,9 +189,14 @@ function Carplay({ settings, command, commandCounter }: CarplayProps): JSX.Eleme
       clearRetryTimeout()
       carplayWorker.postMessage({ type: 'stop' })
       carplayWorker.terminate()
+    }
+  }, [carplayWorker, clearRetryTimeout])
+
+  useEffect(() => {
+    return () => {
       renderWorker?.terminate()
     }
-  }, [carplayWorker, renderWorker, clearRetryTimeout])
+  }, [renderWorker])
 
   const handleResize = useCallback(() => {
     carplayWorker.postMessage({ type: 'frame' })
@@ -208,18 +213,16 @@ function Carplay({ settings, command, commandCounter }: CarplayProps): JSX.Eleme
   }, [handleResize])
 
   useEffect(() => {
+    if (!command) return
     carplayWorker.postMessage({ type: 'keyCommand', command: command as KeyCommand })
   }, [command, commandCounter, carplayWorker])
 
-  const checkDevice = useCallback(
-    async (request: boolean = false) => {
-      const device = request ? await requestDevice() : await findDevice()
-      if (device) {
-        carplayWorker.postMessage({ type: 'start', payload: { config } })
-      }
-    },
-    [carplayWorker, config]
-  )
+  const checkDevice = useCallback(async () => {
+    const device = await findDevice()
+    if (device) {
+      carplayWorker.postMessage({ type: 'start', payload: { config } })
+    }
+  }, [carplayWorker, config])
 
   useEffect(() => {
     navigator.usb.onconnect = () => checkDevice()

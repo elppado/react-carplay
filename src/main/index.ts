@@ -3,7 +3,6 @@ import {
   shell,
   BrowserWindow,
   session,
-  IpcMainEvent,
   ipcMain
 } from 'electron'
 import { join } from 'path'
@@ -54,7 +53,7 @@ const EXTRA_CONFIG: ExtraConfig = {
 }
 
 config = EXTRA_CONFIG
-const socket = new Socket(config)
+export const socketServer = new Socket(config)
 
 // if(config!.most) {
 //   console.log('creating pi most in main')
@@ -89,10 +88,6 @@ const performanceSwitches = [
 performanceSwitches.forEach(([switchName, value]) => {
   app.commandLine.appendSwitch(switchName, value || '')
 })
-
-const handleSettingsReq = (_: IpcMainEvent) => {
-  mainWindow?.webContents.send('settings', config)
-}
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -171,17 +166,10 @@ app.whenReady().then(() => {
     })
   })
 
-  ipcMain.on('getSettings', handleSettingsReq)
+  ipcMain.on('quit', () => {
+    app.quit()
+  })
 
-  // ipcMain.on('saveSettings', saveSettings)
-
-  // ipcMain.on('startStream', startMostStream)
-
-  // ipcMain.on('quit', quit)
-
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })

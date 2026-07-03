@@ -27,7 +27,7 @@ export default defineConfig({
           NodeGlobalsPolyfillPlugin({
             process: true,
             buffer: true
-          })
+          }) as never
         ]
       }
     },

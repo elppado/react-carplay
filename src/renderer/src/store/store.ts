@@ -9,12 +9,6 @@ interface CarplayStore {
   stream: (stream: Stream) => void
 }
 
-interface StatusStore {
-  reverse: boolean
-  lights: boolean
-  setReverse: (reverse: boolean) => void
-}
-
 const START_PORT = 4000
 const MAX_PORT = 4010
 
@@ -25,11 +19,6 @@ const bindSocketHandlers = (activeSocket: Socket) => {
   activeSocket.on('settings', (settings: ExtraConfig) => {
     console.log('received settings', settings)
     useCarplayStore.setState(() => ({ settings }))
-  })
-
-  activeSocket.on('reverse', (reverse: boolean) => {
-    console.log('reverse data', reverse)
-    useStatusStore.setState(() => ({ reverse }))
   })
 }
 
@@ -70,13 +59,5 @@ export const useCarplayStore = create<CarplayStore>()(() => ({
   },
   stream: (stream): void => {
     socket?.emit('stream', stream)
-  }
-}))
-
-export const useStatusStore = create<StatusStore>()((set) => ({
-  reverse: false,
-  lights: false,
-  setReverse: (reverse): void => {
-    set(() => ({ reverse }))
   }
 }))

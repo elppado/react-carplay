@@ -65,10 +65,10 @@ export class RawBitstream {
     let n = 16
     let p = this.ptr
     if (n + p > this.remaining) n = this.remaining
-    const bitstrings = []
-    const hexstrings = []
+    const bitstrings: string[] = []
+    const hexstrings: string[] = []
     /* nibble accumulators */
-    const bits = []
+    const bits: number[] = []
     let nibble = 0
     for (let i = 0; i < n; i++) {
       const q = p >> 3
@@ -1055,7 +1055,7 @@ export class SPS {
             const sizeOfScalingList = i < 6 ? 16 : 64
             let nextScale = 8
             let lastScale = 8
-            const delta_scale = []
+            const delta_scale: number[] = []
             for (let j = 0; j < sizeOfScalingList; j++) {
               if (nextScale !== 0) {
                 const deltaScale = bitstream.se_v()
@@ -1218,7 +1218,7 @@ export class SPS {
    * @returns {string}
    */
   get MIME() {
-    const f = []
+    const f: string[] = []
     f.push('avc1.')
     f.push(byte2hex(this.profile_idc).toUpperCase())
     f.push(byte2hex(this.profile_compatibility).toUpperCase())
