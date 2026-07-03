@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, session } from 'electron'
+import { app, shell, BrowserWindow, session, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { DEFAULT_EXTRA_CONFIG } from '../shared/defaultExtraConfig'
@@ -9,6 +9,7 @@ import { isRaspberryPi } from './platform'
 
 let mainWindow: BrowserWindow
 const config: ExtraConfig = DEFAULT_EXTRA_CONFIG
+let socketServer: Socket
 
 applyPlatformSwitches((name, value) => {
   app.commandLine.appendSwitch(name, value || '')
@@ -42,6 +43,7 @@ function createWindow(): void {
     mainWindow.setFullScreen(true)
   }
 
+  // USB device handling
   mainWindow.webContents.session.setPermissionCheckHandler(() => true)
   mainWindow.webContents.session.setDevicePermissionHandler(
     (details) => details.device.vendorId === 4884
@@ -72,7 +74,7 @@ app.commandLine.appendSwitch('enable-experimental-web-platform-features')
 app.whenReady().then(() => {
   createWindow()
 
-  new Socket(config)
+  socketServer = new Socket(config)
 
   electronApp.setAppUserModelId('com.electron')
 
@@ -84,6 +86,10 @@ app.whenReady().then(() => {
         'Cross-Origin-Embedder-Policy': 'require-corp'
       }
     })
+  })
+
+  ipcMain.on('quit', () => {
+    app.quit()
   })
 
   if (!isRaspberryPi()) {
@@ -102,3 +108,5 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
+
+export { socketServer }

@@ -2,7 +2,7 @@ import { DEFAULT_CONFIG } from 'node-carplay/node'
 import type { ExtraConfig, KeyBindings } from '../main/Globals'
 import { isArmLinux } from './platform'
 
-const DEFAULT_BINDINGS: KeyBindings = {
+export const DEFAULT_BINDINGS: KeyBindings = {
   left: 'ArrowLeft',
   right: 'ArrowRight',
   selectDown: 'Space',
