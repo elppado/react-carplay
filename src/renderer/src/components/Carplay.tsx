@@ -232,6 +232,8 @@ function Carplay({
         setDeviceFound(false)
       }
     }
+
+    checkDevice()
   }, [carplayWorker, checkDevice])
 
   const sendTouchEvent = useCarplayTouch(carplayWorker, width, height)
