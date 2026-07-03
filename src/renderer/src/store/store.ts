@@ -1,10 +1,11 @@
 import { create } from 'zustand'
 import { ExtraConfig } from '../../../main/Globals'
+import { DEFAULT_EXTRA_CONFIG } from '../../../shared/defaultExtraConfig'
 import { io, Socket } from 'socket.io-client'
 import { Stream } from 'socketmost/dist/modules/Messages'
 
 interface CarplayStore {
-  settings: null | ExtraConfig
+  settings: ExtraConfig
   getSettings: () => void
   stream: (stream: Stream) => void
 }
@@ -17,13 +18,15 @@ let currentPort = START_PORT
 
 const bindSocketHandlers = (activeSocket: Socket) => {
   activeSocket.on('settings', (settings: ExtraConfig) => {
-    console.log('received settings', settings)
     useCarplayStore.setState(() => ({ settings }))
   })
 }
 
 const connectSocket = (port: number): Socket => {
-  const activeSocket = io(`http://localhost:${port}`)
+  const activeSocket = io(`http://localhost:${port}`, {
+    transports: ['websocket'],
+    autoConnect: true
+  })
   bindSocketHandlers(activeSocket)
   return activeSocket
 }
@@ -34,7 +37,6 @@ const handleConnectError = () => {
     return
   }
 
-  console.log(`Failed to connect to port ${currentPort}, trying ${currentPort + 1}`)
   switchSocketPort(currentPort + 1)
 }
 
@@ -53,7 +55,7 @@ const switchSocketPort = (port: number) => {
 switchSocketPort(START_PORT)
 
 export const useCarplayStore = create<CarplayStore>()(() => ({
-  settings: null,
+  settings: DEFAULT_EXTRA_CONFIG,
   getSettings: (): void => {
     socket?.emit('getSettings')
   },

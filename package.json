@@ -27,8 +27,6 @@
     "events": "^3.3.0",
     "node-carplay": "github:rhysmorgan134/node-CarPlay",
     "pcm-ringbuf-player": "file:./vendor/pcm-ringbuf-player",
-    "react-loader-spinner": "^5.4.5",
-    "react-router-dom": "^6.23.1",
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2",
     "socketmost": "^2.0.6",

@@ -1,17 +1,16 @@
-import { useEffect, useState, useCallback } from 'react'
-import { HashRouter as Router } from 'react-router-dom'
+import { lazy, Suspense, useEffect, useState, useCallback } from 'react'
 import './App.css'
-import Carplay from './components/Carplay'
 import { useCarplayStore } from './store/store'
 
-function App(): JSX.Element | null {
+const Carplay = lazy(() => import('./components/Carplay'))
+
+function App(): JSX.Element {
   const [commandCounter, setCommandCounter] = useState(0)
   const [keyCommand, setKeyCommand] = useState('')
   const settings = useCarplayStore((state) => state.settings)
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (!settings) return
       if (Object.values(settings.bindings).includes(event.code)) {
         const action = Object.keys(settings.bindings).find(
           (key) => settings.bindings[key] === event.code
@@ -36,14 +35,12 @@ function App(): JSX.Element | null {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [onKeyDown])
 
-  if (!settings) return null
-
   return (
-    <Router>
-      <div className="full">
+    <div className="full">
+      <Suspense fallback={<div className="startup-spinner" aria-label="Loading" />}>
         <Carplay settings={settings} command={keyCommand} commandCounter={commandCounter} />
-      </div>
-    </Router>
+      </Suspense>
+    </div>
   )
 }
 

@@ -1,10 +1,8 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { RotatingLines } from 'react-loader-spinner'
 import { findDevice, CommandMapping } from 'node-carplay/web'
 import { CarPlayWorker, KeyCommand, CarplayWorkerMessage } from './worker/types'
 import useCarplayAudio from './useCarplayAudio'
 import { useCarplayTouch } from './useCarplayTouch'
-import { useLocation } from 'react-router-dom'
 import { ExtraConfig } from '../../../main/Globals'
 import { InitEvent } from './worker/render/RenderEvents'
 
@@ -22,26 +20,7 @@ interface CarplayProps {
   commandCounter: number
 }
 
-const LoadingIndicator = React.memo(() => (
-  <div
-    style={{
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center'
-    }}
-  >
-    <RotatingLines
-      strokeColor="grey"
-      strokeWidth="5"
-      animationDuration="1"
-      width="128"
-      visible={true}
-    />
-  </div>
-))
+const LoadingIndicator = React.memo(() => <div className="loading-spinner" aria-label="Connecting" />)
 
 const VideoContainer = React.memo(
   ({
@@ -73,7 +52,6 @@ const VideoContainer = React.memo(
 
 function Carplay({ settings, command, commandCounter }: CarplayProps): JSX.Element {
   const [isPlugged, setPlugged] = useState(false)
-  const { pathname } = useLocation()
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null)
@@ -238,17 +216,9 @@ function Carplay({ settings, command, commandCounter }: CarplayProps): JSX.Eleme
 
   const sendTouchEvent = useCarplayTouch(carplayWorker, width, height)
 
-  const isLoading = !isPlugged
-  const isRootPath = pathname === '/'
-
-  const mainStyle = useMemo(
-    () => (isRootPath ? { height: '100%', touchAction: 'none' } : { height: '100%' }),
-    [isRootPath]
-  )
-
   return (
-    <div style={mainStyle} id={'main'} className="App" ref={mainElem}>
-      {isLoading && isRootPath && <LoadingIndicator />}
+    <div style={{ height: '100%', touchAction: 'none' }} id={'main'} className="App" ref={mainElem}>
+      {!isPlugged && <LoadingIndicator />}
       <VideoContainer sendTouchEvent={sendTouchEvent} canvasRef={canvasRef} isPlugged={isPlugged} />
     </div>
   )

@@ -7,9 +7,9 @@ import {
 } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { DEFAULT_CONFIG } from 'node-carplay/node'
+import { DEFAULT_EXTRA_CONFIG } from '../shared/defaultExtraConfig'
 import { Socket } from './Socket'
-import { ExtraConfig, KeyBindings } from './Globals'
+import { ExtraConfig } from './Globals'
 
 // import * as fs from 'fs'
 // import { PiMost } from './PiMost'
@@ -19,41 +19,8 @@ import { ExtraConfig, KeyBindings } from './Globals'
 // import CarplayNode, {DEFAULT_CONFIG, CarplayMessage} from "node-carplay/node";
 
 let mainWindow: BrowserWindow
-let config: ExtraConfig
-
-const DEFAULT_BINDINGS: KeyBindings = {
-  left: 'ArrowLeft',
-  right: 'ArrowRight',
-  selectDown: 'Space',
-  back: 'Backspace',
-  down: 'ArrowDown',
-  home: 'KeyH',
-  play: 'KeyP',
-  pause: 'KeyO',
-  next: 'KeyM',
-  prev: 'KeyN',
-  siri: 'KeyS',
-  enableNightMode: 'KeyZ',
-  disableNightMode: 'KeyX'
-}
-
-const EXTRA_CONFIG: ExtraConfig = {
-  ...DEFAULT_CONFIG,
-  width: 1920,
-  height: 720,
-  dpi: 300,
-  kiosk: false,
-  camera: '',
-  microphone: '',
-  piMost: false,
-  canbus: false,
-  bindings: DEFAULT_BINDINGS,
-  most: {},
-  canConfig: {}
-}
-
-config = EXTRA_CONFIG
-export const socketServer = new Socket(config)
+let config: ExtraConfig = DEFAULT_EXTRA_CONFIG
+let socketServer: Socket
 
 // if(config!.most) {
 //   console.log('creating pi most in main')
@@ -146,6 +113,9 @@ function createWindow(): void {
 app.commandLine.appendSwitch('enable-experimental-web-platform-features')
 
 app.whenReady().then(() => {
+  createWindow()
+
+  socketServer = new Socket(config)
   electronApp.setAppUserModelId('com.electron')
   // const carplay = new CarplayNode(DEFAULT_CONFIG)
   //
@@ -174,8 +144,6 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  createWindow()
-
   app.on('activate', () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
@@ -200,5 +168,4 @@ app.on('window-all-closed', () => {
   }
 })
 
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.
+export { socketServer }
