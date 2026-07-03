@@ -62,11 +62,11 @@ function createWindow(): void {
     width: config.width,
     height: config.height,
     kiosk: config.kiosk,
-    show: false,
+    show: true,
     frame: false,
     fullscreen: false,
     autoHideMenuBar: true,
-    backgroundColor: '#2c3e50',
+    backgroundColor: '#000000',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -75,10 +75,6 @@ function createWindow(): void {
       webSecurity: false,
       backgroundThrottling: false
     }
-  })
-
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
   })
 
   // USB device handling

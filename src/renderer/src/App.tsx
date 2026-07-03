@@ -1,8 +1,8 @@
-import { lazy, Suspense, useEffect, useState, useCallback } from 'react'
+import './lib/carplayWorkers'
+import { useEffect, useState, useCallback } from 'react'
 import './App.css'
+import Carplay from './components/Carplay'
 import { useCarplayStore } from './store/store'
-
-const Carplay = lazy(() => import('./components/Carplay'))
 
 function App(): JSX.Element {
   const [commandCounter, setCommandCounter] = useState(0)
@@ -37,9 +37,7 @@ function App(): JSX.Element {
 
   return (
     <div className="full">
-      <Suspense fallback={<div className="startup-spinner" aria-label="Loading" />}>
-        <Carplay settings={settings} command={keyCommand} commandCounter={commandCounter} />
-      </Suspense>
+      <Carplay settings={settings} command={keyCommand} commandCounter={commandCounter} />
     </div>
   )
 }

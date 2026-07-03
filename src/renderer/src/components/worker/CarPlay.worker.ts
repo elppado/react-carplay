@@ -81,7 +81,8 @@ onmessage = async (event: MessageEvent<Command>) => {
         if (device) {
           carplayWeb = new CarplayWeb(config)
           carplayWeb.onmessage = handleMessage
-          carplayWeb.start(device)
+          await carplayWeb.start(device)
+          carplayWeb.dongleDriver.send(new SendCommand('frame'))
         }
       }
       break
