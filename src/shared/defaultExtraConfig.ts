@@ -1,7 +1,7 @@
 import { DEFAULT_CONFIG } from 'node-carplay/node'
 import type { ExtraConfig, KeyBindings } from '../main/Globals'
 
-export const DEFAULT_BINDINGS: KeyBindings = {
+const DEFAULT_BINDINGS: KeyBindings = {
   left: 'ArrowLeft',
   right: 'ArrowRight',
   selectDown: 'Space',
@@ -23,11 +23,5 @@ export const DEFAULT_EXTRA_CONFIG: ExtraConfig = {
   height: 720,
   dpi: 300,
   kiosk: false,
-  camera: '',
-  microphone: '',
-  piMost: false,
-  canbus: false,
-  bindings: DEFAULT_BINDINGS,
-  most: {},
-  canConfig: {}
+  bindings: DEFAULT_BINDINGS
 }

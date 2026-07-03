@@ -26,8 +26,9 @@ export default defineConfig({
     resolve: {
       alias: {
         '@renderer': resolve('src/renderer/src'),
-        stream: "stream-browserify",
-        Buffer: "buffer",
+        stream: 'stream-browserify',
+        Buffer: 'buffer',
+        events: 'events'
       }
     },
     optimizeDeps: {

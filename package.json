@@ -29,9 +29,7 @@
     "pcm-ringbuf-player": "file:./vendor/pcm-ringbuf-player",
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2",
-    "socketmost": "^2.0.6",
     "stream-browserify": "^3.0.0",
-    "usb": "^2.10.0",
     "zustand": "^4.4.5"
   },
   "devDependencies": {
@@ -39,11 +37,9 @@
     "@electron-toolkit/eslint-config-ts": "^1.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
-    "@types/events": "^3.0.1",
     "@types/node": "^18.18.0",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
-    "@webgpu/types": "^0.1.44",
     "@vitejs/plugin-react": "^4.0.4",
     "electron": "25.9.8",
     "electron-builder": "^24.6.3",
@@ -53,7 +49,6 @@
     "prettier": "^3.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "rollup-plugin-polyfill-node": "^0.12.0",
     "typescript": "^5.1.6",
     "vite": "^4.4.9"
   }
