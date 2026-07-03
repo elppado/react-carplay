@@ -23,7 +23,7 @@ function createWindow(): void {
     width: config.width,
     height: config.height,
     kiosk: config.kiosk,
-    show: true,
+    show: false,
     frame: false,
     fullscreen: platformWindow.fullscreen,
     autoHideMenuBar: true,
@@ -42,6 +42,10 @@ function createWindow(): void {
   if (isRaspberryPi()) {
     mainWindow.setFullScreen(true)
   }
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show()
+  })
 
   // USB device handling
   mainWindow.webContents.session.setPermissionCheckHandler(() => true)

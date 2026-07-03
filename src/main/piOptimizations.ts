@@ -1,40 +1,45 @@
-import { isArmLinux } from '../shared/platform'
 import { isPiCm5, isRaspberryPi } from './platform'
 
 type ChromiumSwitch = [string, string?]
 
-const commonSwitches: ChromiumSwitch[] = [
+const essentialSwitches: ChromiumSwitch[] = [
   ['autoplay-policy', 'no-user-gesture-required'],
-  ['disable-webusb-security', 'true'],
+  ['disable-webusb-security', 'true']
+]
+
+const piGpuSwitches: ChromiumSwitch[] = [
+  ['use-gl', 'egl'],
   ['enable-gpu-rasterization'],
   ['enable-zero-copy'],
   ['ignore-gpu-blocklist'],
   ['enable-native-gpu-memory-buffers'],
   ['enable-accelerated-2d-canvas'],
   ['enable-accelerated-mjpeg-decode'],
-  ['enable-accelerated-video-decode']
+  ['enable-accelerated-video-decode'],
+  ['enable-features', 'VaapiVideoDecoder,V4L2FlatStatelessVideoDecoder']
 ]
 
-const piSwitches: ChromiumSwitch[] = [
-  ['use-gl', 'egl'],
-  ['enable-features', 'VaapiVideoDecoder,V4L2FlatStatelessVideoDecoder,UseSkiaRenderer'],
-  ['disable-features', 'UseChromeOSDirectVideoDecoder'],
-  ['num-raster-threads', '2'],
-  ['disable-gpu-driver-bug-workarounds'],
-  ['disable-software-rasterizer']
+const softwareRenderSwitches: ChromiumSwitch[] = [
+  ['disable-gpu'],
+  ['disable-gpu-compositing']
 ]
-
-const cm5Switches: ChromiumSwitch[] = [['in-process-gpu']]
 
 export function applyPlatformSwitches(appendSwitch: (name: string, value?: string) => void): void {
-  const switches = [...commonSwitches]
+  const useSoftwareRender =
+    process.env.CARPLAY_SOFTWARE_RENDER === '1' || process.env.ELECTRON_DISABLE_GPU === '1'
 
-  if (isArmLinux()) {
-    switches.push(...piSwitches)
-  }
+  const switches: ChromiumSwitch[] = [...essentialSwitches]
 
-  if (isPiCm5()) {
-    switches.push(...cm5Switches)
+  if (useSoftwareRender) {
+    switches.push(...softwareRenderSwitches)
+  } else if (isRaspberryPi() && process.env.CARPLAY_HARDWARE_GPU === '1') {
+    switches.push(...piGpuSwitches)
+    if (isPiCm5() && process.env.CARPLAY_IN_PROCESS_GPU === '1') {
+      switches.push(['in-process-gpu'])
+    }
+  } else if (isRaspberryPi()) {
+    // Safer Pi default: avoid forcing EGL until hardware GPU is confirmed working.
+    switches.push(['ignore-gpu-blocklist'])
   }
 
   for (const [name, value] of switches) {

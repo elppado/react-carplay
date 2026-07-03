@@ -39,6 +39,19 @@ npm install
 npm run dev
 ```
 
+If the window does not appear (GPU driver issues), try software rendering:
+
+```bash
+npm run start:software
+```
+
+On Raspberry Pi, hardware GPU acceleration is opt-in:
+
+```bash
+CARPLAY_HARDWARE_GPU=1 npm start
+CARPLAY_KIOSK=1 ~/carplay/launch-carplay.sh
+```
+
 ### Building for Raspberry Pi CM5 (ARM64)
 
 ```bash

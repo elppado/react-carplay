@@ -60,10 +60,14 @@ try_electron_mode() {
   export MESA_GL_VERSION_OVERRIDE="${MESA_GL_VERSION_OVERRIDE:-3.1}"
 
   echo "Starting CarPlay Electron mode..."
-  exec "$app_image" \
-    --use-gl=egl \
-    --enable-features=VaapiVideoDecoder,V4L2FlatStatelessVideoDecoder \
-    "$@"
+  gpu_args=()
+  if [[ "${CARPLAY_HARDWARE_GPU:-}" == "1" ]]; then
+    gpu_args+=(--use-gl=egl --enable-features=VaapiVideoDecoder,V4L2FlatStatelessVideoDecoder)
+  fi
+  if [[ "${CARPLAY_SOFTWARE_RENDER:-}" == "1" ]]; then
+    gpu_args+=(--disable-gpu --disable-gpu-compositing)
+  fi
+  exec "$app_image" "${gpu_args[@]}" "$@"
 }
 
 if try_native_mode; then

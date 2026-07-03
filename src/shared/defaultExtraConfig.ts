@@ -44,7 +44,7 @@ const piDefaults = isArmLinux()
   ? {
       fps: 30,
       dpi: 240,
-      kiosk: true,
+      kiosk: process.env.CARPLAY_KIOSK === '1',
       mediaDelay: 0
     }
   : {}

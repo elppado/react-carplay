@@ -12,6 +12,7 @@
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "start": "electron-vite preview",
+    "start:software": "electron-vite preview -- --disable-gpu --disable-gpu-compositing",
     "start:native": "node out/main/native.js",
     "dev": "electron-vite dev",
     "dev:native": "electron-vite build && node out/main/native.js",
