@@ -37,7 +37,7 @@
     "jmuxer": "^2.0.5",
     "node-carplay": "github:rhysmorgan134/node-CarPlay",
     "pcm-player": "^0.0.16",
-    "pcm-ringbuf-player": "github:rhysmorgan134/pcm-ringbuf-player",
+    "pcm-ringbuf-player": "file:./vendor/pcm-ringbuf-player",
     "react-i18next": "^15.5.1",
     "react-loader-spinner": "^5.4.5",
     "react-router-dom": "^6.23.1",

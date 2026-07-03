@@ -1,22 +1,17 @@
-<<<<<<< HEAD
-#directories
-bower_components
 node_modules
 dist
+out
 build
 assets
 .idea
-
-#files
+bower_components
+vendor/pcm-ringbuf-player/node_modules
 *.tgz
 *.log
+*.log*
 *.apk
 .idea/workspace.xml
 *.xml
 
-=======
-node_modules
-dist
-out
-*.log*
->>>>>>> origin/v4
+# Keep vendored pcm-ringbuf-player build output for install without prepare
+!vendor/pcm-ringbuf-player/dist/

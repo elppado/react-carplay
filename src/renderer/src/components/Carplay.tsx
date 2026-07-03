@@ -150,7 +150,7 @@ function Carplay({
       case 'unplugged':
         setPlugged(false)
         break
-      case 'requestBuffer':
+      case 'getAudioPlayer':
         clearRetryTimeout()
         getAudioPlayer(ev.data.message)
         break
