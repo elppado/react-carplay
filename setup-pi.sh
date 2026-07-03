@@ -12,7 +12,14 @@ echo "    user: $USER_NAME"
 echo "    install dir: $INSTALL_DIR"
 
 sudo apt-get update
-sudo apt-get install -y fuse libfuse2 udev
+sudo apt-get install -y \
+  fuse libfuse2 udev \
+  gstreamer1.0-tools \
+  gstreamer1.0-plugins-base \
+  gstreamer1.0-plugins-good \
+  gstreamer1.0-plugins-bad \
+  gstreamer1.0-libav \
+  alsa-utils
 
 echo "==> Creating udev rule for Carlinkit dongle (4884:1520)"
 echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="1314", ATTR{idProduct}=="152*", MODE="0666", GROUP="plugdev"' | sudo tee "$UDEV_RULE"

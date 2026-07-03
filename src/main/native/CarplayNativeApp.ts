@@ -1,14 +1,14 @@
-import CarplayNode, { TouchAction } from 'node-carplay/node'
+import { CarplayNode, TouchAction, type CarplayNodeInstance } from './nodeCarplay'
 import type { ExtraConfig } from '../Globals'
 import { GStreamerVideo } from './GStreamerVideo'
 import { NativeAudio } from './NativeAudio'
 import { EvdevReader, discoverInputDevices } from './evdev'
 import { buildKeyCodeMap, type KeyCommand } from './keyBindings'
 
-type NativeMessage = Parameters<NonNullable<CarplayNode['onmessage']>>[0]
+type NativeMessage = Parameters<NonNullable<CarplayNodeInstance['onmessage']>>[0]
 
 export class CarplayNativeApp {
-  private readonly carplay: CarplayNode
+  private readonly carplay: CarplayNodeInstance
   private readonly video: GStreamerVideo
   private readonly audio: NativeAudio
   private readonly keyMap: Map<number, KeyCommand>

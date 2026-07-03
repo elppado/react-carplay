@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from 'child_process'
-import { decodeTypeMap, type AudioData } from 'node-carplay/node'
+import { decodeTypeMap, type AudioData } from './nodeCarplay'
 
 const createAudioKey = (decodeType: number, audioType: number): string => {
   const format = decodeTypeMap[decodeType]

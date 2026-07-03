@@ -60,10 +60,32 @@ chmod +x setup-pi.sh
 ./setup-pi.sh
 ```
 
-Copy the AppImage and launcher to `~/carplay`, then run:
+Copy the CM5 AppImage and launcher to `~/carplay`, then run:
 
 ```bash
 ~/carplay/launch-carplay.sh
+```
+
+This starts **Electron mode** (AppImage) by default. Both the AppImage and `launch-carplay.sh` must be in the same directory (`~/carplay`).
+
+### Native GStreamer mode (optional, experimental)
+
+Chromium-free path using GStreamer + ALSA. Requires the full build output on the Pi (`out/`, `node_modules/`, `package.json`), not just the AppImage:
+
+```bash
+CARPLAY_NATIVE=1 ~/carplay/launch-carplay.sh
+```
+
+Or from a dev tree after `npm run build`:
+
+```bash
+CARPLAY_NATIVE=1 npm run start:native
+```
+
+Force Electron when native prerequisites are present:
+
+```bash
+CARPLAY_ELECTRON=1 ~/carplay/launch-carplay.sh
 ```
 
 Optional systemd autostart (replace `pi` with your username):

@@ -5,7 +5,8 @@ import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfil
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin({ exclude: ['node-carplay'] })],
+    // Keep node-carplay external so native mode can load usb prebuilds from node_modules.
+    plugins: [externalizeDepsPlugin()],
     build: {
       rollupOptions: {
         input: {

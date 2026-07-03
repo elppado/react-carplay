@@ -7,7 +7,7 @@ Wants=graphical.target
 Type=simple
 User=%i
 Environment=LIBVA_DRIVER_NAME=v4l2request
-Environment=CARPLAY_ELECTRON=0
+Environment=CARPLAY_ELECTRON=1
 ExecStart=/home/%i/carplay/launch-carplay.sh
 Restart=on-failure
 RestartSec=3

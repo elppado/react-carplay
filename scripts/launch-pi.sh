@@ -1,41 +1,73 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+# Install directory: where this script and the AppImage live (e.g. ~/carplay)
+INSTALL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Native mode (node-carplay + GStreamer) — default on Pi when available
-if [[ "${CARPLAY_ELECTRON:-}" != "1" ]] && command -v gst-launch-1.0 >/dev/null && command -v aplay >/dev/null; then
-  NATIVE_BIN="$ROOT_DIR/out/main/native.js"
-  if [[ -f "$NATIVE_BIN" ]]; then
-    export LIBVA_DRIVER_NAME="${LIBVA_DRIVER_NAME:-v4l2request}"
-    echo "Starting CarPlay native mode (GStreamer)..."
-    exec node "$NATIVE_BIN" "$@"
+find_appimage() {
+  find "$INSTALL_DIR" -maxdepth 1 -name 'react-carplay-*-cm5-arm64.AppImage' -type f 2>/dev/null | head -n 1
+}
+
+find_appimage_fallback() {
+  find "$INSTALL_DIR" -maxdepth 1 -name 'react-carplay-*-arm64.AppImage' -type f 2>/dev/null | head -n 1
+}
+
+# Native mode is opt-in: requires a built tree (out/main/native.js + node_modules) on the Pi.
+# AppImage-only installs should use Electron (default).
+try_native_mode() {
+  if [[ "${CARPLAY_ELECTRON:-}" == "1" || "${CARPLAY_NATIVE:-}" != "1" ]]; then
+    return 1
   fi
-  echo "Native binary not found at $NATIVE_BIN — build with: npm run build" >&2
-  if [[ "${CARPLAY_FALLBACK_ELECTRON:-}" != "1" ]]; then
-    exit 1
+
+  if ! command -v gst-launch-1.0 >/dev/null || ! command -v aplay >/dev/null; then
+    echo "Native mode requires gst-launch-1.0 and aplay. Install with setup-pi.sh" >&2
+    return 1
   fi
+
+  local native_bin="$INSTALL_DIR/out/main/native.js"
+  if [[ ! -f "$native_bin" ]]; then
+    echo "Native binary not found at $native_bin" >&2
+    echo "Deploy the full build (out/ + node_modules) or use Electron: CARPLAY_ELECTRON=1" >&2
+    return 1
+  fi
+
+  if [[ ! -d "$INSTALL_DIR/node_modules/node-carplay" ]]; then
+    echo "node_modules not found in $INSTALL_DIR (required for native mode)" >&2
+    return 1
+  fi
+
+  export LIBVA_DRIVER_NAME="${LIBVA_DRIVER_NAME:-v4l2request}"
+  echo "Starting CarPlay native mode (GStreamer)..."
+  cd "$INSTALL_DIR"
+  exec node "$native_bin" "$@"
+}
+
+try_electron_mode() {
+  local app_image
+  app_image="$(find_appimage)"
+  if [[ -z "$app_image" ]]; then
+    app_image="$(find_appimage_fallback)"
+  fi
+
+  if [[ -z "$app_image" ]]; then
+    echo "CarPlay AppImage not found in $INSTALL_DIR" >&2
+    echo "Build with: npm run build:cm5" >&2
+    return 1
+  fi
+
+  export ELECTRON_OZONE_PLATFORM_HINT="${ELECTRON_OZONE_PLATFORM_HINT:-auto}"
+  export LIBVA_DRIVER_NAME="${LIBVA_DRIVER_NAME:-v4l2request}"
+  export MESA_GL_VERSION_OVERRIDE="${MESA_GL_VERSION_OVERRIDE:-3.1}"
+
+  echo "Starting CarPlay Electron mode..."
+  exec "$app_image" \
+    --use-gl=egl \
+    --enable-features=VaapiVideoDecoder,V4L2FlatStatelessVideoDecoder \
+    "$@"
+}
+
+if try_native_mode; then
+  exit 0
 fi
 
-APP_IMAGE="$(find "$ROOT_DIR" -maxdepth 1 -name 'react-carplay-*-cm5-arm64.AppImage' -type f | head -n 1)"
-
-if [[ -z "$APP_IMAGE" ]]; then
-  APP_IMAGE="$(find "$ROOT_DIR" -maxdepth 1 -name 'react-carplay-*-arm64.AppImage' -type f | head -n 1)"
-fi
-
-if [[ -z "$APP_IMAGE" ]]; then
-  echo "CarPlay AppImage not found. Build with: npm run build:cm5" >&2
-  echo "Or use native mode: npm run build && npm run start:native" >&2
-  exit 1
-fi
-
-export ELECTRON_OZONE_PLATFORM_HINT="${ELECTRON_OZONE_PLATFORM_HINT:-auto}"
-export LIBVA_DRIVER_NAME="${LIBVA_DRIVER_NAME:-v4l2request}"
-export MESA_GL_VERSION_OVERRIDE="${MESA_GL_VERSION_OVERRIDE:-3.1}"
-
-echo "Starting CarPlay Electron mode..."
-exec "$APP_IMAGE" \
-  --use-gl=egl \
-  --enable-features=VaapiVideoDecoder,V4L2FlatStatelessVideoDecoder \
-  "$@"
+try_electron_mode
