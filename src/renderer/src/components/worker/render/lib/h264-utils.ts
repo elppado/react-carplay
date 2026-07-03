@@ -18,13 +18,6 @@ export const profileNames: Map<number, string> = new Map([
   [44, 'FREXT_CAVLC444'],
 ])
 
-export const chromaFormatValues = {
-  0: 'YUV400',
-  1: 'YUV420',
-  2: 'YUV422',
-  3: 'YUV444',
-}
-
 // noinspection DuplicatedCode
 /**
  * Tools for handling general bitstream issues.

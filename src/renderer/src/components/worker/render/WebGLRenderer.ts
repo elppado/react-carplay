@@ -32,7 +32,14 @@ export class WebGLRenderer implements FrameRenderer {
 
   constructor(canvas: OffscreenCanvas) {
     this.#canvas = canvas
-    const gl = (this.#ctx = canvas.getContext('webgl'))
+    const gl = (this.#ctx = canvas.getContext('webgl', {
+      alpha: false,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      preserveDrawingBuffer: false,
+      powerPreference: 'high-performance'
+    }))
     if (!gl) {
       throw Error('WebGL context is null')
     }

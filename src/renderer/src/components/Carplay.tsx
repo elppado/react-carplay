@@ -7,9 +7,6 @@ import { ExtraConfig } from '../../../main/Globals'
 import { InitEvent } from './worker/render/RenderEvents'
 import { carplayWorker, micChannel, videoChannel } from '../lib/carplayWorkers'
 
-const width = 1920
-const height = 720
-
 const RETRY_DELAY_MS = 1500
 const MAX_START_RETRIES = 8
 
@@ -21,6 +18,8 @@ interface CarplayProps {
 
 function Carplay({ settings, command, commandCounter }: CarplayProps): JSX.Element {
   const [isPlugged, setPlugged] = useState(false)
+  const width = settings.width
+  const height = settings.height
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const mainElem = useRef<HTMLDivElement>(null)
@@ -36,7 +35,7 @@ function Carplay({ settings, command, commandCounter }: CarplayProps): JSX.Eleme
       height,
       mediaDelay: settings.mediaDelay
     }),
-    [settings.fps, settings.mediaDelay]
+    [settings.fps, settings.mediaDelay, width, height]
   )
 
   const configRef = useRef(config)

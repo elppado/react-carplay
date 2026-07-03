@@ -1,6 +1,4 @@
-export type WorkerEventType = 'init' | 'frame' | 'renderDone'
-
-export type Renderer = 'webgl' | 'webgl2' | 'webgpu'
+export type WorkerEventType = 'init' | 'frame'
 
 export interface WorkerEvent {
   type: WorkerEventType
@@ -18,7 +16,6 @@ export class InitEvent implements WorkerEvent {
   constructor(
     public canvas: OffscreenCanvas,
     public videoPort: MessagePort,
-    public renderer: Renderer = 'webgl',
-    public reportFps: boolean = false,
+    public reportFps: boolean = false
   ) {}
 }
