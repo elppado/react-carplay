@@ -12,13 +12,17 @@
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "start": "electron-vite preview",
+    "start:software": "electron-vite preview -- --disable-gpu --disable-gpu-compositing",
+    "start:native": "node out/main/native.js",
     "dev": "electron-vite dev",
+    "dev:native": "electron-vite build && node out/main/native.js",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:win": "npm run build && electron-builder --win --config",
     "build:mac": "electron-vite build && electron-builder --mac --config",
     "build:linux": "electron-vite build && electron-builder --linux --config",
-    "build:armLinux": "electron-vite build && electron-builder --linux AppImage --arm64 --config"
+    "build:armLinux": "npm run build && electron-builder --linux AppImage --arm64 --config electron-builder.pi.yml",
+    "build:cm5": "npm run build && electron-builder --linux AppImage --arm64 --config electron-builder.pi.yml"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
@@ -29,7 +33,6 @@
     "pcm-ringbuf-player": "file:./vendor/pcm-ringbuf-player",
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2",
-    "socketmost": "^2.0.6",
     "stream-browserify": "^3.0.0",
     "usb": "^2.10.0",
     "zustand": "^4.4.5"
@@ -53,7 +56,6 @@
     "prettier": "^3.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "rollup-plugin-polyfill-node": "^0.12.0",
     "typescript": "^5.1.6",
     "vite": "^4.4.9"
   }

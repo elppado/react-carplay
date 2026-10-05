@@ -1,0 +1,26 @@
+appId: com.elppado.carplay
+productName: react-carplay
+directories:
+  buildResources: build
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!vendor/pcm-ringbuf-player/src/**'
+  - '!vendor/pcm-ringbuf-player/node_modules/**'
+asarUnpack:
+  - resources/**
+linux:
+  target:
+    - AppImage
+  category: Utility
+  maintainer: elppado
+  executableName: react-carplay
+  synopsis: CarPlay for Raspberry Pi CM5
+  description: CarPlay client for Carlinkit dongles on Raspberry Pi Compute Module 5
+appImage:
+  artifactName: ${name}-${version}-cm5-${arch}.AppImage
+npmRebuild: false

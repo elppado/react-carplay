@@ -2,12 +2,9 @@ import { create } from 'zustand'
 import { ExtraConfig } from '../../../main/Globals'
 import { DEFAULT_EXTRA_CONFIG } from '../../../shared/defaultExtraConfig'
 import { io, Socket } from 'socket.io-client'
-import { Stream } from 'socketmost/dist/modules/Messages'
 
 interface CarplayStore {
   settings: ExtraConfig
-  getSettings: () => void
-  stream: (stream: Stream) => void
 }
 
 const START_PORT = 4000
@@ -55,11 +52,5 @@ const switchSocketPort = (port: number) => {
 switchSocketPort(START_PORT)
 
 export const useCarplayStore = create<CarplayStore>()(() => ({
-  settings: DEFAULT_EXTRA_CONFIG,
-  getSettings: (): void => {
-    socket?.emit('getSettings')
-  },
-  stream: (stream): void => {
-    socket?.emit('stream', stream)
-  }
+  settings: DEFAULT_EXTRA_CONFIG
 }))
